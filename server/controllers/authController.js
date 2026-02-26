@@ -5,6 +5,9 @@ import generateToken from "../utils/generateToken.js";
 import generateForgotPasswordEmailTemplate from "../utils/emailTemplate.js";
 import sendEmail from "../utils/emailService.js";
 import crypto from "crypto";
+import generateOtp from "../utils/generateOtp.js";
+import sendOtpSms from "../services/otpService.js";
+import bcrypt from 'bcrypt'
 
 // ----------------- REGISTER USER -----------------
 export const register = asyncHandler(async (req, res, next) => {
@@ -71,7 +74,7 @@ export const login = asyncHandler(async (req, res, next) => {
     "+password",
   );
 
-  if(!user){
+  if (!user) {
     return next(new ErrorHandler("User not Registred", 404));
   }
 
@@ -203,4 +206,87 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
 
   // 9. generate token
   generateToken(user, 200, "Password reset Successful", res);
+});
+
+// ----------------- SEND OTP -----------------
+export const sendOtp = asyncHandler(async (req, res, next) => {
+  // 1. take user from middlware and check user is authenticated
+  const user = req.user;
+  if (!user) return next(new ErrorHandler("User is not authenticated", 401));
+
+  // 2. destructure phone number and check phone number is available
+  const { phone } = req.body;
+  if (!phone || phone.trim() === "")
+    return next(new ErrorHandler("phone number is required", 400));
+
+  // 3. generate otp
+  const otp = generateOtp();
+
+  // 4. store otp in verficationOtp field
+  user.verificationOtp = await bcrypt.hash(otp, 10);
+
+  // 5. set expire time
+  user.verificationOtpExpire = Date.now() + 5 * 60 * 1000; // 5 minute
+
+  // 6. save user
+  await user.save();
+
+  //7. send otp
+  await sendOtpSms(phone, otp);
+
+  // 8. send response
+  res.status(200).json({
+    success: true,
+    message: "OTP sent successfully",
+  });
+});
+
+// ----------------- VERIFY OTP -----------------
+export const verfiyOtp = asyncHandler(async (req, res, next) => {
+  // 1. take user from middlware and check user is authenticated
+  const user = req.user;
+  if (!user) return next(new ErrorHandler("User is not authenticated", 401));
+
+  // 2. destructure otp field and check field is available
+  const { verificationOtp } = req.body;
+
+  if (!verificationOtp || verificationOtp.trim() === "") {
+    return next(new ErrorHandler("otp is required", 400));
+  }
+
+  // 3. hash otp
+  const isMatchOtp = await bcrypt.compare(verificationOtp, user.verificationOtp);
+
+  // 4. verfiy otp
+  if(!isMatchOtp || user.verificationOtpExpire < Date.now()){
+    return next(new ErrorHandler("Invalid or Expire Otp", 400));
+  }
+
+  // 5. if otp is match then isVerified field true
+  user.isVerified = true;
+
+  // 6. verificationOtp and verificationOtpExpire field  undefined
+  user.verificationOtp = undefined;
+  user.verificationOtpExpire = undefined;
+
+  // 7. save user
+  await user.save();
+
+  // 8. send response
+  res.status(200).json({
+    success: true,
+    message: "Phone verified successfully",
+  });
+});
+
+// ----------------- GET USER -----------------
+export const getUser = asyncHandler(async (req, res, next) => {
+  // 1. take user from middlware and check user is authenticated
+  const user = req.user;
+  if (!user) return next(new ErrorHandler("User is not authenticated", 401));
+
+  res.status(200).json({
+    success: true,
+    user,
+  });
 });

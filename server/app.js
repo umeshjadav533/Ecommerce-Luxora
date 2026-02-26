@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import userRouter from "./routes/userRoute.js";
+import authRouter from "./routes/authRoute.js";
 import productRouter from "./routes/productRoute.js";
 import cartRouter from "./routes/cartRoute.js";
 
@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // router
-app.use("/api/user", userRouter);
+app.use("/api/auth", authRouter);
 app.use("/api/product", productRouter);
 app.use("/api/cart", cartRouter);
 
