@@ -53,7 +53,7 @@ const userSchema = new mongoose.Schema(
           require: true,
         },
         size: {
-          type: String
+          type: String,
         },
         variant: {
           type: String,
@@ -63,23 +63,33 @@ const userSchema = new mongoose.Schema(
           type: Number,
           default: 1,
           min: 1,
-        }
+        },
       },
     ],
-    favorite: [
+    wishlist: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
+        product: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+          require: true,
+        },
+        size: {
+          type: String,
+        },
+        variant: {
+          type: String,
+          default: null,
+        },
       },
     ],
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     isVerified: {
       type: Boolean,
-      default: false
+      default: false,
     },
     verificationOtp: String,
-    verificationOtpExpire: Date
+    verificationOtpExpire: Date,
   },
   { timestamps: true },
 );
@@ -103,12 +113,15 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
 };
 
 // reset password
-userSchema.methods.getResetPasswordToken = function (){
-    const resetToken = crypto.randomBytes(20).toString("hex");
-    this.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
-    this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
-    return resetToken;
-}
+userSchema.methods.getResetPasswordToken = function () {
+  const resetToken = crypto.randomBytes(20).toString("hex");
+  this.resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+  this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+  return resetToken;
+};
 
 const User = mongoose.model("User", userSchema);
 

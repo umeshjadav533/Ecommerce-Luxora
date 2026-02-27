@@ -3,26 +3,45 @@ import asyncHandler from '../utils/asyncHandler.js'
 import ErrorHandler from '../middlewares/errorMiddleWare.js'
 import mongoose from 'mongoose'
 
-// ----------------- GET ALL PRODUCTS -----------------
+// ----------------- GET ALL PRODUCTS AND FILTERED PRODUCTS -----------------
 export const getAllProducts = asyncHandler(async (req, res, next) => {
-
     // 1. take user from middleware if user not authenticated then throe error
     const user = req.user;
     if(!user){
         return next(new ErrorHandler("User not authenticated", 401));
     }
 
-    // 2. get all products
-    const products = await Product.find();
+    // 2. Get keyword from query
+    const search = req.query.search;
+
+    // 3. Create search filter
+    let filter = {};
+
+    if(search){
+        filter = {
+            $or: [
+                { title: { $regex: search, $options: "i" } },
+                { description: { $regex: search, $options: "i" } },
+                { brand: { $regex: search, $options: "i" } },
+                { category: { $regex: search, $options: "i" } },
+                { subCategory: { $regex: search, $options: "i" } },
+                { tags: { $regex: search, $options: "i" } }
+            ]
+        };
+    }
+
+    // 4. Find products with filter
+    const products = await Product.find(filter);
     
-    // 3. if products not find then throw error
+    // 5. if products not find then throw error
     if(!products || products.length === 0){
         return next(new ErrorHandler("Product not found", 404));
     }
 
-    // 4. send response
+    // 6. send response
     res.status(200).json({
         success: true,
+        totalProducts: products.length,
         products
     })
 })

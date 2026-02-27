@@ -1,11 +1,13 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import ErrorHandler from "../middlewares/errorMiddleWare.js";
-import getPopulatedCart from "../services/getPopulatedCart.js";
-import formatCartResponse from "../services/formatCartResponse.js";
+import { formatCartResponse } from "../services/cartService.js";
 import mongoose from "mongoose";
 import Product from "../models/productModel.js";
-import calculatePrice from "../services/calculatePrice.js";
+import calculatePrice from "../utils/calculatePrice.js";
+import getPopulatedUser from "../utils/getPopulatedUser.js";
+import formatResponse from "../utils/formatResponse.js";
 
+// ----------------- GET ALL CART PRODUCTS -----------------
 export const getCartItems = asyncHandler(async (req, res, next) => {
   // 1. take user from middleware
   const user = req.user;
@@ -16,14 +18,27 @@ export const getCartItems = asyncHandler(async (req, res, next) => {
   }
 
   // 3. get cart full data
-  const populatedCart = await getPopulatedCart(user._id);
+  const populatedUser = await getPopulatedUser("cart.product", user._id);
+  if (!populatedUser) {
+    return next(new ErrorHandler("User not found", 404));
+  }
 
+  // 4. check wishlist isEmpty
+  if (!populatedUser.cart || populatedUser.cart.length === 0) {
+    return res.status(200).json({
+      success: true,
+      message: "cart is Empty",
+    });
+  }
+
+  // 5. send response
   res.status(200).json({
     success: true,
-    cart: formatCartResponse(populatedCart.cart || []),
+    cart: formatResponse(populatedUser.cart || []),
   });
 });
 
+// ----------------- ADD TO CART -----------------
 export const addToCart = asyncHandler(async (req, res, next) => {
   // 1. take user from middleware if not authenticated user then throw error
   const user = req.user;
@@ -33,9 +48,7 @@ export const addToCart = asyncHandler(async (req, res, next) => {
 
   // 2. destructure all fields
   const { id, size, variant, quantity } = req.body;
-  console.log(
-    `id = ${id}, size = ${size}, variant = ${variant}, quantity = ${quantity}`,
-  );
+
   // 3. check any field is not empty or mongoose id is valid
   if (!id || !quantity) {
     return next(new ErrorHandler("Please provide required fields", 400));
@@ -62,7 +75,16 @@ export const addToCart = asyncHandler(async (req, res, next) => {
     }
   }
 
-  // 6. quantity not greater than stock
+  // 6. if size exist then select size
+  if (size) {
+    const sizeExist = product?.variants[0]?.sizes?.find(
+      (s) => s?.size?.toLowerCase() === size?.toLowerCase(),
+    );
+
+    if (!sizeExist) return next(new ErrorHandler("Size not found", 404));
+  }
+
+  // 7. quantity not greater than stock
   const selectedVariant = product.variants?.find(
     (v) => v?.color?.name?.toLowerCase() === variant?.toLowerCase(),
   );
@@ -74,13 +96,11 @@ export const addToCart = asyncHandler(async (req, res, next) => {
     selectedVariant?.stock ||
     0;
 
-  console.log("stock = ", availableStock);
-
   if (quantity > availableStock) {
     return next(new ErrorHandler("No more stock available", 400));
   }
 
-  // 7. cart item exist or not
+  // 8. cart item exist or not
   const cartItem = user.cart.find((item) => {
     return (
       item.product.toString() === id &&
@@ -89,14 +109,14 @@ export const addToCart = asyncHandler(async (req, res, next) => {
     );
   });
 
-  // 7. if cart item exist then quantity +1
+  // 9. if cart item exist then quantity +1
   if (cartItem) {
     if (cartItem.quantity + quantity > availableStock) {
       return next(new ErrorHandler("No more stock available", 400));
     }
     cartItem.quantity += quantity;
   } else {
-    // 8. if cart item not exist then add to cart
+    // 10. if cart item not exist then add to cart
     user.cart.push({
       product: product._id,
       size: size || null,
@@ -105,16 +125,17 @@ export const addToCart = asyncHandler(async (req, res, next) => {
     });
   }
 
-  // 10. save user
+  // 11. save user
   await user.save();
 
-  // 11. send response
+  // 12. send response
   res.status(200).json({
     success: true,
     message: "Product added to cart",
   });
 });
 
+// ----------------- UPDATE CART PRODUCT -----------------
 export const updateCartProduct = asyncHandler(async (req, res, next) => {
   // 1. take user from middleware if not authenticated user then throw error
   const user = req.user;
@@ -168,7 +189,7 @@ export const updateCartProduct = asyncHandler(async (req, res, next) => {
       selectVariant?.sizes?.find(
         (s) => s.size.toLowerCase() === size.toLowerCase(),
       )?.stock ||
-      selectedVariant?.stock ||
+      selectVariant?.stock ||
       0;
 
     if (cartItem.quantity + 1 > stock) {
@@ -200,15 +221,16 @@ export const updateCartProduct = asyncHandler(async (req, res, next) => {
   await user.save();
 
   // 11. populate user cart
-  const updatedUser = await getPopulatedCart(user._id);
+  const updatedUser = await getPopulatedUser("cart.product", user._id);
 
   // 12. send response
   res.status(200).json({
     success: true,
-    cart: formatCartResponse(updatedUser.cart),
+    cart: formatResponse(updatedUser.cart),
   });
 });
 
+// ----------------- REMOVE CART PRODUCT -----------------
 export const removeFromCart = asyncHandler(async (req, res, next) => {
   // 1. take user from middelware and check user is authenticated
   const user = req.user;
@@ -230,7 +252,19 @@ export const removeFromCart = asyncHandler(async (req, res, next) => {
   const product = await Product.findById(id);
   if (!product) return next(new ErrorHandler("product not found", 404));
 
-  // 5. removed from cart
+  // 5. find cart item in user cart
+  const cartItem = user.cart.find((item) => {
+    return (
+      item.product._id.toString() === id &&
+      item.size.toLowerCase() === size.toLowerCase() &&
+      item.variant.toLowerCase() === variant.toLowerCase()
+    );
+  });
+  
+  // 6. cart item not exist then throw error
+  if(!cartItem) return next(new ErrorHandler("cart item not exist", 400));
+
+  // 7. cart item is exist then removed from cart
   user.cart = user.cart.filter(
     (item) =>
       !(
@@ -240,27 +274,28 @@ export const removeFromCart = asyncHandler(async (req, res, next) => {
       ),
   );
 
-  // 6. save user
+  // 8. save user
   await user.save();
 
-  // 7. update user with full cart data
-  const updatedUser = await getPopulatedCart(user._id);
+  // 9. update user with full cart data
+  const updatedUser = await getPopulatedUser("cart.product", user._id);
 
-  // 8. send response
+  // 10. send response
   res.status(200).json({
     success: true,
     message: "Item removed from cart",
-    cart: formatCartResponse(updatedUser.cart),
+    cart: formatResponse(updatedUser.cart),
   });
 });
 
+// ----------------- GET CART SUMMARY -----------------
 export const cartSummary = asyncHandler(async (req, res, next) => {
   const user = req.user;
   if (!user) {
     return next(new ErrorHandler("User not authenticated", 401));
   }
 
-  const populatedUser = await getPopulatedCart(user._id);
+  const populatedUser = await getPopulatedUser("cart.product", user._id);
 
   if (!populatedUser) {
     return next(new ErrorHandler("User not found", 404));
@@ -283,10 +318,10 @@ export const cartSummary = asyncHandler(async (req, res, next) => {
     discountAmount += productDiscount * item.quantity;
   });
 
-  // ✅ Shipping Logic
+  // Shipping Logic
   const shipping = subtotal >= 100 ? 0 : 40;
 
-  // ✅ Grand Total Calculation
+  // Grand Total Calculation
   const grandTotal = subtotal - discountAmount + shipping;
 
   res.status(200).json({
@@ -299,7 +334,7 @@ export const cartSummary = asyncHandler(async (req, res, next) => {
         grandTotal: Number(grandTotal.toFixed(2)),
         totalItems: populatedUser.cart.reduce(
           (acc, item) => acc + item.quantity,
-          0
+          0,
         ),
       },
     },

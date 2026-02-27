@@ -1,10 +1,10 @@
 import User from '../models/userModel.js'
 
-const getPopulatedCart = async (id) => {
+const getPopulatedUser = async (populateField, id) => {
     return await User.findById(id).populate({
-        path: "cart.product",
+        path: populateField,
         select: "title brand mrpPrice discountPercentage rating variants tags"
     });
 }
 
-export default getPopulatedCart;
+export default getPopulatedUser;

@@ -1,6 +1,7 @@
-import calculatePrice from "./calculatePrice.js";
+import User from "../models/userModel.js";
+import calculatePrice from "../utils/calculatePrice.js";
 
-const formatCartResponse = (cart) => {
+export const formatCartResponse = (cart) => {
     return cart.map((item) => {
 
         const variantObj = item.product?.variants?.find(
@@ -35,5 +36,3 @@ const formatCartResponse = (cart) => {
         };
     });
 };
-
-export default formatCartResponse;

@@ -6,7 +6,7 @@ import generateForgotPasswordEmailTemplate from "../utils/emailTemplate.js";
 import sendEmail from "../utils/emailService.js";
 import crypto from "crypto";
 import generateOtp from "../utils/generateOtp.js";
-import sendOtpSms from "../services/otpService.js";
+import { sendOtpSms } from "../services/userService.js";
 import bcrypt from 'bcrypt'
 
 // ----------------- REGISTER USER -----------------
