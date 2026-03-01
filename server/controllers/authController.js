@@ -7,7 +7,7 @@ import sendEmail from "../utils/emailService.js";
 import crypto from "crypto";
 import generateOtp from "../utils/generateOtp.js";
 import { sendOtpSms } from "../services/userService.js";
-import bcrypt from 'bcrypt'
+import bcrypt from "bcrypt";
 
 // ----------------- REGISTER USER -----------------
 export const register = asyncHandler(async (req, res, next) => {
@@ -255,10 +255,13 @@ export const verfiyOtp = asyncHandler(async (req, res, next) => {
   }
 
   // 3. hash otp
-  const isMatchOtp = await bcrypt.compare(verificationOtp, user.verificationOtp);
+  const isMatchOtp = await bcrypt.compare(
+    verificationOtp,
+    user.verificationOtp,
+  );
 
   // 4. verfiy otp
-  if(!isMatchOtp || user.verificationOtpExpire < Date.now()){
+  if (!isMatchOtp || user.verificationOtpExpire < Date.now()) {
     return next(new ErrorHandler("Invalid or Expire Otp", 400));
   }
 
@@ -288,5 +291,28 @@ export const getUser = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     user,
+  });
+});
+
+// ----------------- UPDATE USER -----------------
+export const updateUser = asyncHandler(async (req, res, next) => {
+  // 1. Take user from middelware and check user is authenticated
+  const user = req.user;
+  if (!user) return next(new ErrorHandler("User is not authenticated", 401));
+
+  // 2. update user
+  const updatedUser = await User.findByIdAndUpdate(
+    user._id,
+    { ...req.body },
+    { new: true, runValidators: true },
+  );
+
+  // 3. check user is exist or not
+  if(!updatedUser) return next(new ErrorHandler("User not found", 404));
+
+  res.status(200).json({
+    success: true,
+    message: "User Updated Successfully",
+    user: updatedUser
   });
 });

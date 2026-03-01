@@ -54,6 +54,7 @@ const userSchema = new mongoose.Schema(
         },
         size: {
           type: String,
+          default: null
         },
         variant: {
           type: String,
