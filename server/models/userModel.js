@@ -42,8 +42,12 @@ const userSchema = new mongoose.Schema(
       match: [/^[0-9]{10}$/, "Enter valid phone number"],
     },
     avatar: {
-      type: String,
-      default: null,
+      public_id: {
+        type: String,
+      },
+      url: {
+        type: String,
+      },
     },
     cart: [
       {
@@ -54,7 +58,7 @@ const userSchema = new mongoose.Schema(
         },
         size: {
           type: String,
-          default: null
+          default: null,
         },
         variant: {
           type: String,

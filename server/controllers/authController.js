@@ -8,50 +8,67 @@ import crypto from "crypto";
 import generateOtp from "../utils/generateOtp.js";
 import { sendOtpSms } from "../services/userService.js";
 import bcrypt from "bcrypt";
+import path from 'path';
+import fs from 'fs';
+import cloudinary from '../config/cloudinary.js';
 
 // ----------------- REGISTER USER -----------------
 export const register = asyncHandler(async (req, res, next) => {
-  // 1. Empty Request body check
-  if (!req.body || Object.keys(req.body).length === 0) {
-    return next(new ErrorHandler("Please Provide all fields", 400));
-  }
-
-  // 2. destructure
+  // 1. destructure input fields and check field is not empty or space-only
   const { first_name, last_name, email, password, phoneNumber } = req.body;
 
-  // 3. validation - empty or space only
-  if (
-    !first_name ||
-    first_name.trim() === "" ||
-    !last_name ||
-    last_name.trim() === "" ||
-    !email ||
-    email.trim() === "" ||
-    !password ||
-    password.trim() === "" ||
-    !phoneNumber ||
-    String(phoneNumber).trim() === ""
-  ) {
+  if (!first_name || !last_name || !email || !password || !phoneNumber) {
     return next(new ErrorHandler("Please Provide all fields", 400));
   }
 
-  // 4. check if user already exists
+  // 2. user already exist or not
   const existUser = await User.findOne({ email: email.toLowerCase() });
   if (existUser) {
     return next(new ErrorHandler("User already exists", 409));
   }
 
-  // 5. Create user
+  let avatarData = {
+    public_id: null,
+    url: null,
+  };
+
+  // 3. take file
+  if (req.file) {
+    // Upload on local folder
+    const localFilePath = path.join(
+      process.cwd(),
+      "uploads/avatars",
+      req.file.filename
+    );
+
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(localFilePath, {
+      folder: "luxora_avatars",
+    });
+
+    avatarData = {
+      public_id: result.public_id,
+      url: result.secure_url,
+    };
+
+    // Delete local file after successful upload
+    if (fs.existsSync(localFilePath)) {
+      fs.unlinkSync(localFilePath);
+    }
+  }
+
+  // 4. create user
   const user = await User.create({
     first_name,
     last_name,
     email: email.toLowerCase(),
     password,
     phoneNumber,
+    avatar: avatarData,
   });
 
-  // 6. Generate JWT token + send Response
-  generateToken(user, 201, "User Registration SuccessFully", res);
+  // 5. generate token and send response
+  generateToken(user, 201, "User Registration Successfully", res);
 });
 
 // ----------------- LOGIN USER -----------------
@@ -296,23 +313,55 @@ export const getUser = asyncHandler(async (req, res, next) => {
 
 // ----------------- UPDATE USER -----------------
 export const updateUser = asyncHandler(async (req, res, next) => {
-  // 1. Take user from middelware and check user is authenticated
-  const user = req.user;
-  if (!user) return next(new ErrorHandler("User is not authenticated", 401));
+  // 1. Take user from middleware and check user is authenticated or not
+  const user = await User.findById(req.user._id);
+  if (!user)
+    return next(new ErrorHandler("User not found", 404));
 
-  // 2. update user
+  // 2. destructure update fields
+  let updateData = { ...req.body };
+
+  // 3. Take file
+  if (req.file) {
+    // Upload on local Folder
+    const localFilePath = path.join(
+      process.cwd(),
+      "uploads/avatars",
+      req.file.filename
+    );
+
+    // Delete old Cloudinary image
+    if (user.avatar?.public_id) {
+      await cloudinary.uploader.destroy(user.avatar.public_id);
+    }
+
+    // Upload new image to Cloudinary
+    const result = await cloudinary.uploader.upload(localFilePath, {
+      folder: "luxora_avatars",
+    });
+
+    updateData.avatar = {
+      public_id: result.public_id,
+      url: result.secure_url,
+    };
+
+    // Delete local file
+    if (fs.existsSync(localFilePath)) {
+      fs.unlinkSync(localFilePath);
+    }
+  }
+
+  // 4. update user
   const updatedUser = await User.findByIdAndUpdate(
     user._id,
-    { ...req.body },
-    { new: true, runValidators: true },
+    updateData,
+    { new: true, runValidators: true }
   );
 
-  // 3. check user is exist or not
-  if(!updatedUser) return next(new ErrorHandler("User not found", 404));
-
+  // 5. send response
   res.status(200).json({
     success: true,
     message: "User Updated Successfully",
-    user: updatedUser
+    user: updatedUser,
   });
 });

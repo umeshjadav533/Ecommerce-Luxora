@@ -27,6 +27,7 @@ app.use("/api/product", productRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/wishlist", wishlistRouter);
 app.use("/api/orders", orderRouter);
+app.use("/uploads", express.static("uploads"))
 
 app.use((req, res, next) => {
   console.log("Request Hit:", req.method, req.originalUrl);
