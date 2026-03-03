@@ -238,7 +238,7 @@ export const sendOtp = asyncHandler(async (req, res, next) => {
 
   // 3. generate otp
   const otp = generateOtp();
-
+  console.log(otp);
   // 4. store otp in verficationOtp field
   user.verificationOtp = await bcrypt.hash(otp, 10);
 
@@ -250,7 +250,7 @@ export const sendOtp = asyncHandler(async (req, res, next) => {
 
   //7. send otp
   await sendOtpSms(phone, otp);
-
+  
   // 8. send response
   res.status(200).json({
     success: true,
