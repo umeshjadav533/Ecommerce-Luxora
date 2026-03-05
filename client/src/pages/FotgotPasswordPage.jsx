@@ -1,7 +1,7 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form"
 import { forgotPasswordSchema } from "../validations/authValidation.js";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { forgotUserPasswordAsyncThunk } from "../features/auth/authAPI";
 import { toast } from "react-toastify";
@@ -12,12 +12,14 @@ export default function FotgotPasswordPage () {
     resolver: yupResolver(forgotPasswordSchema)
   });
   const dispatch = useDispatch();
+  const { loading } = useSelector(state => state.auth);
   const navigate = useNavigate();
   
   const submitForm = async (data) => {
     try {
       const res = await dispatch(forgotUserPasswordAsyncThunk(data)).unwrap();
       toast.success(res.message);
+      navigate("/check-email");
     } catch (error) {
       toast.error(error);
     }
@@ -64,12 +66,16 @@ export default function FotgotPasswordPage () {
               )}
             </div>
 
-          {/* Button */}
+          {/* Button */} 
           <button
             type="submit"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition duration-300 font-medium"
+            disabled={loading.forgotPassword}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition duration-300 font-medium mt-2 flex items-center justify-center gap-2"
           >
-            Send Reset Link
+            {loading.forgotPassword && (
+              <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+            )}
+            <span>Send Reset Link</span>
           </button>
 
         </form>

@@ -1,7 +1,7 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { resetPasswordSchema } from "../validations/authValidation.js";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { resetUserPasswordAsyncThunk } from "../features/auth/authAPI";
 import { toast } from "react-toastify";
@@ -17,6 +17,7 @@ export default function ResetPasswordPage() {
   });
 
   const dispatch = useDispatch();
+  const { loading } = useSelector(state => state.auth);
   const navigate = useNavigate();
   const { token } = useParams();
   console.log(token);
@@ -29,7 +30,7 @@ export default function ResetPasswordPage() {
         }),
       ).unwrap();
       toast.success(res.message);
-      navigate("/");
+      navigate("/password-reset-success");
     } catch (error) {
       toast.error(error);
     }
@@ -93,12 +94,16 @@ export default function ResetPasswordPage() {
             )}
           </div>
 
-          {/* Button */}
+          {/* Button  */}
           <button
             type="submit"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition duration-300 font-medium"
+            disabled={loading.resetPassword}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition duration-300 font-medium mt-2 flex items-center justify-center gap-2"
           >
-            Reset Password
+            {loading.resetPassword && (
+              <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+            )}
+            <span>Reset Password</span>
           </button>
         </form>
       </div>

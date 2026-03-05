@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUserAsyncThunk } from "../features/auth/authAPI.js";
 import { toast } from "react-toastify";
@@ -16,6 +16,7 @@ export default function RegisterPage() {
     resolver: yupResolver(registerSchema),
   });
   const dispatch = useDispatch();
+  const { loading } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
   const submitForm = async (data) => {
@@ -136,7 +137,7 @@ export default function RegisterPage() {
 
             {errors.phoneNumber && (
               <p className="text-red-500 text-xs mt-1">
-                {errors.phoneNumber}
+                {errors.phoneNumber.message}
               </p>
             )}
           </div>
@@ -144,9 +145,13 @@ export default function RegisterPage() {
           {/* Button */}
           <button
             type="submit"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition duration-300 font-medium mt-2"
+            disabled={loading.register}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition duration-300 font-medium mt-2 flex items-center justify-center gap-2"
           >
-            Create Account
+            {loading.register && (
+              <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+            )}
+            <span>Create Account</span>
           </button>
         </form>
 

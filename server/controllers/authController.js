@@ -8,9 +8,9 @@ import crypto from "crypto";
 import generateOtp from "../utils/generateOtp.js";
 import { sendOtpSms } from "../services/userService.js";
 import bcrypt from "bcrypt";
-import path from 'path';
-import fs from 'fs';
-import cloudinary from '../config/cloudinary.js';
+import path from "path";
+import fs from "fs";
+import cloudinary from "../config/cloudinary.js";
 
 // ----------------- REGISTER USER -----------------
 export const register = asyncHandler(async (req, res, next) => {
@@ -38,7 +38,7 @@ export const register = asyncHandler(async (req, res, next) => {
     const localFilePath = path.join(
       process.cwd(),
       "uploads/avatars",
-      req.file.filename
+      req.file.filename,
     );
 
     // Upload to Cloudinary
@@ -115,109 +115,85 @@ export const logout = asyncHandler(async (req, res, next) => {
 
 // ----------------- FORGOT PASSWORD -----------------
 export const forgotPassword = asyncHandler(async (req, res, next) => {
-  // 1. Empty Request body check
-  if (!req.body || Object.keys(req.body).length === 0) {
-    return next(new ErrorHandler("Please Provide all fields", 400));
-  }
-
-  // 2. destructure
   const { email } = req.body;
 
-  // 3. validation empty or space only
   if (!email || email.trim() === "") {
     return next(new ErrorHandler("Email is required", 400));
   }
 
-  // 4. find user in database
   const user = await User.findOne({ email: email.toLowerCase() });
+
   if (!user) {
-    return res.status(200).json({
-      success: true,
-      message: "User not exist with this email",
-    });
+    return next(new ErrorHandler("If user exist then sent email", 404));
   }
 
-  // 5. Generate token
   const resetToken = user.getResetPasswordToken();
 
-  // 6. save without validation
   await user.save({ validateBeforeSave: false });
 
-  // 7. make url
   const resetPasswordUrl = `${process.env.FRONTEND_URL}/api/auth/password/reset-password/${resetToken}`;
+  console.log(user, resetPasswordUrl);
 
-  // 8. generate email
   const message = generateForgotPasswordEmailTemplate(resetPasswordUrl);
 
-  // 9. send email to user
   try {
     await sendEmail({
       to: user.email,
-      subject: "Luxora - Password Reset Request",
+      subject: "Password Reset Request",
       message,
     });
 
-    // 10. send response
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: `Email sent to user ${user.email} successfully`,
+      message: `Email sent to ${user.email}`,
     });
   } catch (error) {
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
+
     await user.save({ validateBeforeSave: false });
-    return next(new ErrorHandler(error.message || "Cannot send email", 500));
+
+    return next(new ErrorHandler("Email could not be sent", 500));
   }
 });
 
 // ----------------- RESET PASSWORD -----------------
 export const resetPassword = asyncHandler(async (req, res, next) => {
-
-  // 1. token params se lo
-  const { token } = req.params;
-
-  // 2. password body se lo
   const { password, confirmPassword } = req.body;
 
-  // 3. check empty
-  if (!password?.trim() || !confirmPassword?.trim()) {
-    return next(new ErrorHandler("Please provide all required fields", 400));
-  }
-
-  // 4. check match
-  if (password !== confirmPassword) {
-    return next(
-      new ErrorHandler("Password and confirm password do not match", 400)
-    );
-  }
-
-  // 5. hash token
   const resetPasswordToken = crypto
     .createHash("sha256")
-    .update(token)
+    .update(req.params.token)
     .digest("hex");
 
-  // 6. find user
   const user = await User.findOne({
     resetPasswordToken,
     resetPasswordExpire: { $gt: Date.now() },
   });
 
   if (!user) {
-    return next(
-      new ErrorHandler("Invalid or expired password reset token", 400)
-    );
+    return next(new ErrorHandler("Token is invalid or expired", 400));
   }
 
-  // 7. update password
+  if (!password || !confirmPassword) {
+    return next(new ErrorHandler("Please provide password fields", 400));
+  }
+
+  if (password !== confirmPassword) {
+    return next(new ErrorHandler("Passwords do not match", 400));
+  }
+
   user.password = password;
+
   user.resetPasswordToken = undefined;
   user.resetPasswordExpire = undefined;
 
   await user.save();
 
-  // 8. send response
-  generateToken(user, 200, "Password reset successful", res);
+  res.status(200).json({
+    success: true,
+    message: "Password reset successful",
+  });
 });
 
 // ----------------- SEND OTP -----------------
@@ -245,7 +221,7 @@ export const sendOtp = asyncHandler(async (req, res, next) => {
 
   //7. send otp
   await sendOtpSms(phone, otp);
-  
+
   // 8. send response
   res.status(200).json({
     success: true,
@@ -254,7 +230,7 @@ export const sendOtp = asyncHandler(async (req, res, next) => {
 });
 
 // ----------------- VERIFY OTP -----------------
-export const verfiyOtp = asyncHandler(async (req, res, next) => {
+export const verfiyPhoneOtp = asyncHandler(async (req, res, next) => {
   // 1. take user from middlware and check user is authenticated
   const user = req.user;
   if (!user) return next(new ErrorHandler("User is not authenticated", 401));
@@ -310,8 +286,7 @@ export const getUser = asyncHandler(async (req, res, next) => {
 export const updateUser = asyncHandler(async (req, res, next) => {
   // 1. Take user from middleware and check user is authenticated or not
   const user = await User.findById(req.user._id);
-  if (!user)
-    return next(new ErrorHandler("User not found", 404));
+  if (!user) return next(new ErrorHandler("User not found", 404));
 
   // 2. destructure update fields
   let updateData = { ...req.body };
@@ -322,7 +297,7 @@ export const updateUser = asyncHandler(async (req, res, next) => {
     const localFilePath = path.join(
       process.cwd(),
       "uploads/avatars",
-      req.file.filename
+      req.file.filename,
     );
 
     // Delete old Cloudinary image
@@ -347,11 +322,10 @@ export const updateUser = asyncHandler(async (req, res, next) => {
   }
 
   // 4. update user
-  const updatedUser = await User.findByIdAndUpdate(
-    user._id,
-    updateData,
-    { new: true, runValidators: true }
-  );
+  const updatedUser = await User.findByIdAndUpdate(user._id, updateData, {
+    new: true,
+    runValidators: true,
+  });
 
   // 5. send response
   res.status(200).json({

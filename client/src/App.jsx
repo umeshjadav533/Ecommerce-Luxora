@@ -10,6 +10,8 @@ import LoginPage from "./pages/LoginPage";
 import FotgotPasswordPage from "./pages/FotgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import { ToastContainer } from "react-toastify";
+import EmailSentPage from "./pages/EmailSentPage";
+import PasswordResetSuccess from "./pages/PasswordResetSuccess";
 
 const App = () => {
   return (
@@ -24,10 +26,12 @@ const App = () => {
           path="/password/forgot-password"
           element={<FotgotPasswordPage />}
         />
+        <Route path="/check-email" element={<EmailSentPage />} />
         <Route
           path="/api/auth/password/reset-password/:token"
           element={<ResetPasswordPage />}
         />
+        <Route path="/password-reset-success" element={<PasswordResetSuccess />} />
 
         {/* Pages With Layout */}
         <Route element={<MainLayout />}>

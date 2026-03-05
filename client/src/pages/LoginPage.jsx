@@ -1,28 +1,33 @@
-import { useForm } from "react-hook-form"
+import { useForm } from "react-hook-form";
 import { loginSchema } from "../validations/authValidation.js";
 import { loginUserAsyncThunk } from "../features/auth/authAPI.js";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
 import { LockKeyhole, Mail } from "lucide-react";
 import { yupResolver } from "@hookform/resolvers/yup";
 
-export default function LoginPage () {
-  const { register, handleSubmit, formState: { errors } } = useForm({
-    resolver: yupResolver(loginSchema)
+export default function LoginPage() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(loginSchema),
   });
   const dispatch = useDispatch();
+  const { loading } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
   const submitForm = async (data) => {
     try {
       const res = await dispatch(loginUserAsyncThunk(data)).unwrap();
       toast.success(res.message);
-      navigate('/');
+      navigate("/");
     } catch (error) {
-        toast.error(error);
+      toast.error(error);
     }
-  }
+  };
   return (
     <div className="min-h-screen grid md:grid-cols-2 grid-cols-1 items-center bg-linear-to-br from-[#f8fafc] to-[#e2e8f0] p-4">
       {/* Left Image Section */}
@@ -120,9 +125,13 @@ export default function LoginPage () {
             {/* Button */}
             <button
               type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition duration-300 font-medium"
+              disabled={loading.login}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl transition duration-300 font-medium mt-2 flex items-center justify-center gap-2"
             >
-              Login
+              {loading.login && (
+                <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+              )}
+              <span>Login</span>
             </button>
           </form>
 
@@ -139,5 +148,5 @@ export default function LoginPage () {
         </div>
       </div>
     </div>
-  )
+  );
 }
