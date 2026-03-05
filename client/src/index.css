@@ -1,0 +1,37 @@
+/* Google Fonts link */
+@import url("https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inika:wght@400;700&family=New+Rocker&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&family=Playwrite+US+Trad+Guides&family=Titan+One&display=swap");
+
+@import "tailwindcss";
+
+* {
+  /* font-family: "Inika", serif; */
+  font-family: "Outfit", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  user-select: none;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  /* background-color: #F7F7F7; */
+  background-color: #F9F7F6;
+  /* background-color: #EDEBE5; */
+  /* background-color: #FFFFFF; */
+  /* background-color: #F8F8F8; */
+  /* background-color: #F2F2EF; */
+}
+
+.roker-font {
+  font-family: "New Rocker", system-ui;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.truncate-title{
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 2 lines tak show karega */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

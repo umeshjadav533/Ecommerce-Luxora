@@ -133,7 +133,7 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
   if (!user) {
     return res.status(200).json({
       success: true,
-      message: "If an account exists, reset email has been sent",
+      message: "User not exist with this email",
     });
   }
 
@@ -144,7 +144,7 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   // 7. make url
-  const resetPasswordUrl = `${process.env.FRONTEND_URL}/api/user/password/reset-password/${resetToken}`;
+  const resetPasswordUrl = `${process.env.FRONTEND_URL}/api/auth/password/reset-password/${resetToken}`;
 
   // 8. generate email
   const message = generateForgotPasswordEmailTemplate(resetPasswordUrl);
@@ -172,30 +172,26 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
 
 // ----------------- RESET PASSWORD -----------------
 export const resetPassword = asyncHandler(async (req, res, next) => {
-  // 1. take token from request
+
+  // 1. token params se lo
   const { token } = req.params;
 
-  // 2. destructure
+  // 2. password body se lo
   const { password, confirmPassword } = req.body;
 
-  // 3. check not empty field orspace only
-  if (
-    !password ||
-    password.trim() === "" ||
-    !confirmPassword ||
-    confirmPassword.trim() === ""
-  ) {
+  // 3. check empty
+  if (!password?.trim() || !confirmPassword?.trim()) {
     return next(new ErrorHandler("Please provide all required fields", 400));
   }
 
-  // 4. check password and confirmPassword
+  // 4. check match
   if (password !== confirmPassword) {
     return next(
-      new ErrorHandler("Password and confirm password do not match", 400),
+      new ErrorHandler("Password and confirm password do not match", 400)
     );
   }
 
-  // 5. Hash token url
+  // 5. hash token
   const resetPasswordToken = crypto
     .createHash("sha256")
     .update(token)
@@ -209,20 +205,19 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
 
   if (!user) {
     return next(
-      new ErrorHandler("Invalid or expired password reset token", 400),
+      new ErrorHandler("Invalid or expired password reset token", 400)
     );
   }
 
-  //7. update password and resetpassword token and resetPasswordExpire undefined
+  // 7. update password
   user.password = password;
   user.resetPasswordToken = undefined;
   user.resetPasswordExpire = undefined;
 
-  // 8. save user
   await user.save();
 
-  // 9. generate token
-  generateToken(user, 200, "Password reset Successful", res);
+  // 8. send response
+  generateToken(user, 200, "Password reset successful", res);
 });
 
 // ----------------- SEND OTP -----------------

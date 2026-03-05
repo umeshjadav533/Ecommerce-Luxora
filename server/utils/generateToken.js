@@ -1,7 +1,7 @@
 const generateToken = (user, statusCode, message, res) => {
     const token = user.generateToken();
 
-    res.status(statusCode).cookie("token", token, {
+    return res.status(statusCode).cookie("token", token, {
         expires: new Date(
             Date.now() + Number(process.env.COOKIE_EXPIRE) * 24 * 60 * 60 * 1000
         ),
