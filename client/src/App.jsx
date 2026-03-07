@@ -12,16 +12,42 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import { ToastContainer } from "react-toastify";
 import EmailSentPage from "./pages/EmailSentPage";
 import PasswordResetSuccess from "./pages/PasswordResetSuccess";
+import PublicRoute from "./routes/PublicRoute";
+import { useDispatch } from "react-redux";
+import { useEffect } from "react";
+import { userProfileAsyncThunk } from "./features/auth/authAPI";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 const App = () => {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(userProfileAsyncThunk());
+  }, [dispatch]);
+
   return (
     <BrowserRouter>
       <ToastContainer position="top-right" autoClose={2000} />
-
       <Routes>
-        {/* Auth Pages (Without Layout) */}
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        {/* Auth Pages */}
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <RegisterPage />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+
         <Route
           path="/password/forgot-password"
           element={<FotgotPasswordPage />}
@@ -31,10 +57,19 @@ const App = () => {
           path="/api/auth/password/reset-password/:token"
           element={<ResetPasswordPage />}
         />
-        <Route path="/password-reset-success" element={<PasswordResetSuccess />} />
+        <Route
+          path="/password-reset-success"
+          element={<PasswordResetSuccess />}
+        />
 
-        {/* Pages With Layout */}
-        <Route element={<MainLayout />}>
+        {/* Protected Pages */}
+        <Route
+          element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="/" element={<HomePage />} />
           <Route path="/:pageName" element={<NavigationPage />} />
           <Route path="/studio" element={<StudioPage />} />

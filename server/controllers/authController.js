@@ -107,10 +107,17 @@ export const login = asyncHandler(async (req, res, next) => {
 // ----------------- LOGOUT USER -----------------
 export const logout = asyncHandler(async (req, res, next) => {
   // 1. clear cookie
-  res.status(200).clearCookie("token").json({
-    success: true,
-    message: "Logged out Successfully",
-  });
+  res
+    .status(200)
+    .clearCookie("token", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    })
+    .json({
+      success: true,
+      message: "Logged out Successfully",
+    });
 });
 
 // ----------------- FORGOT PASSWORD -----------------

@@ -41,7 +41,7 @@ export const getAllProducts = asyncHandler(async (req, res, next) => {
     // 6. send response
     res.status(200).json({
         success: true,
-        totalProducts: products.length,
+        totalProducts: products?.length,
         products
     })
 })
@@ -78,7 +78,7 @@ export const getProductById = asyncHandler(async (req, res, next) => {
 })
 
 // ----------------- GET PRODUCT BY CATEGORY -----------------
-export const getProductByCategory = asyncHandler(async (req, res, next) => {
+export const getProductsForCategoryPage = asyncHandler(async (req, res, next) => {
     // 1. take user from middleware if user not authenticated then throe error
     const user = req.user;
     if(!user){
@@ -106,3 +106,30 @@ export const getProductByCategory = asyncHandler(async (req, res, next) => {
     });
 })
 
+// ----------------- GET PRODUCTS BY TAG -----------------
+export const getProductsByTag = asyncHandler( async (req, res, next) => {
+    const user = req.user;
+    if (!user) {
+        return next(new ErrorHandler("User not authenticated", 401));
+    }
+
+    const { tag } = req.body;
+
+    if(!tag?.trim() === ""){
+        return next(new ErrorHandler("Tag is required", 400));
+    }
+
+    const products = await Product.find({
+        tags: tag
+    }).sort({ createdAt: -1 }).limit(10);
+
+    if(!products || products.length === 0){
+        return next(new ErrorHandler("Products not found", 404));
+    }
+
+    res.status(200).json({
+        success: true,
+        totalProducts: products.length,
+        products
+    });
+})

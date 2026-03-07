@@ -8,7 +8,7 @@ import getPopulatedUser from "../utils/getPopulatedUser.js";
 import formatResponse from "../utils/formatResponse.js";
 
 // ----------------- GET ALL CART PRODUCTS -----------------
-export const getCartItems = asyncHandler(async (req, res, next) => {
+export const getCartProducts = asyncHandler(async (req, res, next) => {
   // 1. take user from middleware
   const user = req.user;
 

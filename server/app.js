@@ -6,6 +6,7 @@ import productRouter from "./routes/productRoute.js";
 import cartRouter from "./routes/cartRoute.js";
 import wishlistRouter from "./routes/wishlistRoute.js";
 import orderRouter from "./routes/orderRoute.js";
+import categoryRouter from "./routes/categoryRoute.js";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use("/api/cart", cartRouter);
 app.use("/api/wishlist", wishlistRouter);
 app.use("/api/orders", orderRouter);
 app.use("/uploads", express.static("uploads"))
+app.use("/api/category", categoryRouter);
 
 app.use((req, res, next) => {
   console.log("Request Hit:", req.method, req.originalUrl);

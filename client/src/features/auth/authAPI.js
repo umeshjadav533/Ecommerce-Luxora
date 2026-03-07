@@ -33,7 +33,7 @@ export const resetUserPasswordAsyncThunk = createApiThunk(
 export const userProfileAsyncThunk = createApiThunk(
     "auth/profile",
     "get",
-    "/profile"
+    "/auth/profile"
 );
 
 export const sendOtpAsyncThunk = createApiThunk(

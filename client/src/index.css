@@ -14,12 +14,10 @@
 body {
   margin: 0;
   padding: 0;
-  /* background-color: #F7F7F7; */
-  background-color: #F9F7F6;
-  /* background-color: #EDEBE5; */
-  /* background-color: #FFFFFF; */
-  /* background-color: #F8F8F8; */
-  /* background-color: #F2F2EF; */
+  /* background-color: #ffffff; */
+  /* background-color: #F2F1EC; */
+  background-color: #ECE9E2;
+  /* height: 3000px; */
 }
 
 .roker-font {

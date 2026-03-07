@@ -1,11 +1,12 @@
 import express from 'express'
-import { getAllProducts, getProductByCategory, getProductById } from '../controllers/productController.js';
+import { getAllProducts, getProductsForCategoryPage, getProductById, getProductsByTag } from '../controllers/productController.js';
 import isAuthenticated from '../middlewares/authMiddleware.js';
 
 const productRouter = express.Router();
 
 productRouter.get("/", isAuthenticated, getAllProducts);
 productRouter.get("/:id", isAuthenticated, getProductById);
-productRouter.get("/category/:category", isAuthenticated, getProductByCategory);
+productRouter.get("/category-page/:category", isAuthenticated, getProductsForCategoryPage);
+productRouter.post("/tag", isAuthenticated, getProductsByTag);
 
 export default productRouter;
