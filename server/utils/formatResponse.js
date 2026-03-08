@@ -1,39 +1,52 @@
 import calculatePrice from "./calculatePrice.js";
 
 const formatResponse = (field) => {
-    return field.map((item) => {
+  return field.map((item) => {
 
-        const variantObj = item.product?.variants?.find(
-            v => v?.color?.name.toLowerCase() === item.variant.toLowerCase()
-        ) || null;
+    // find variant
+    const variantObj = item.product?.variants?.find(
+      (v) => v?.color?.toLowerCase() === item?.variant?.toLowerCase()
+    ) || null;
 
-        const sizeObj = variantObj?.sizes?.find(
-            s => s?.size?.toLowerCase() === item?.size?.toLowerCase()
-        ) || null;
+    // find size
+    const sizeObj = variantObj?.sizes?.find(
+      (s) => s?.size?.toLowerCase() === item?.size?.toLowerCase()
+    ) || null;
 
-        return {
-            productId: item.product?._id,
-            title: item.product?.title,
-            brand: item.product?.brand,
-            mrpPrice: item.product?.mrpPrice,
-            discountPercentage: item.product?.discountPercentage,
-            rating: item.product?.rating,
-            quantity: item.quantity,
+    const mrpPrice = variantObj?.mrpPrice || 0;
+    const discountPercentage = variantObj?.discountPercentage || 0;
 
-            variant: variantObj.color.name,
-            image: variantObj?.images?.[0] || item.product?.images?.[0] || null,
+    return {
+      productId: item.product?._id,
+      title: item.product?.title,
+      brand: item.product?.brand,
+      rating: item.product?.rating,
 
-            size: sizeObj?.size || null,
-            stock: variantObj?.sizes?.find(
-                s => s.size.toLowerCase() === item.size.toLowerCase()
-            )?.stock || variantObj?.stock || 0,
+      quantity: item.quantity,
 
-            price: calculatePrice(
-                item.product?.mrpPrice,
-                item.product?.discountPercentage
-            )
-        };
-    });
+      variant: variantObj?.color || null,
+
+      image:
+        variantObj?.images?.[0] ||
+        item.product?.images?.[0] ||
+        null,
+
+      size: sizeObj?.size || null,
+
+      stock:
+        sizeObj?.stock ||
+        variantObj?.stock ||
+        0,
+
+      mrpPrice,
+      discountPercentage,
+
+      price: calculatePrice(
+        mrpPrice,
+        discountPercentage
+      ),
+    };
+  });
 };
 
 export default formatResponse

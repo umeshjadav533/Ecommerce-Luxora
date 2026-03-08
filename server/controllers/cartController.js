@@ -40,16 +40,13 @@ export const getCartProducts = asyncHandler(async (req, res, next) => {
 
 // ----------------- ADD TO CART -----------------
 export const addToCart = asyncHandler(async (req, res, next) => {
-  // 1. take user from middleware if not authenticated user then throw error
   const user = req.user;
   if (!user) {
     return next(new ErrorHandler("User not authenticated", 401));
   }
 
-  // 2. destructure all fields
   const { id, size, variant, quantity } = req.body;
 
-  // 3. check any field is not empty or mongoose id is valid
   if (!id || !quantity) {
     return next(new ErrorHandler("Please provide required fields", 400));
   }
@@ -58,49 +55,41 @@ export const addToCart = asyncHandler(async (req, res, next) => {
     return next(new ErrorHandler("Invalid product id", 400));
   }
 
-  // 4. find product in database if product not find then throw error
   const product = await Product.findById(id);
   if (!product) {
     return next(new ErrorHandler("Product not found", 404));
   }
 
-  // 5. if variant exist then select variant
+  let selectedVariant = null;
+
   if (variant) {
-    const variantExist = product.variants?.find(
-      (v) => v?.color?.name?.toLowerCase() === variant?.toLowerCase(),
+    selectedVariant = product.variants.find(
+      (v) => v.color.toLowerCase() === variant.toLowerCase(),
     );
 
-    if (!variantExist) {
-      return next(new ErrorHandler("Variant not found", 400));
+    if (!selectedVariant) {
+      return next(new ErrorHandler("Variant not found", 404));
     }
   }
 
-  // 6. if size exist then select size
+  let selectedSize = null;
+
   if (size) {
-    const sizeExist = product?.variants[0]?.sizes?.find(
-      (s) => s?.size?.toLowerCase() === size?.toLowerCase(),
+    selectedSize = selectedVariant?.sizes?.find(
+      (s) => s.size.toLowerCase() === size.toLowerCase(),
     );
 
-    if (!sizeExist) return next(new ErrorHandler("Size not found", 404));
+    if (!selectedSize) {
+      return next(new ErrorHandler("Size not found", 404));
+    }
   }
 
-  // 7. quantity not greater than stock
-  const selectedVariant = product.variants?.find(
-    (v) => v?.color?.name?.toLowerCase() === variant?.toLowerCase(),
-  );
-
-  let availableStock =
-    selectedVariant?.sizes?.find(
-      (s) => s?.size?.toLowerCase() === size?.toLowerCase(),
-    )?.stock ||
-    selectedVariant?.stock ||
-    0;
+  const availableStock = selectedSize?.stock || selectedVariant?.stock || 0;
 
   if (quantity > availableStock) {
     return next(new ErrorHandler("No more stock available", 400));
   }
 
-  // 8. cart item exist or not
   const cartItem = user.cart.find((item) => {
     return (
       item.product.toString() === id &&
@@ -109,14 +98,13 @@ export const addToCart = asyncHandler(async (req, res, next) => {
     );
   });
 
-  // 9. if cart item exist then quantity +1
   if (cartItem) {
     if (cartItem.quantity + quantity > availableStock) {
       return next(new ErrorHandler("No more stock available", 400));
     }
+
     cartItem.quantity += quantity;
   } else {
-    // 10. if cart item not exist then add to cart
     user.cart.push({
       product: product._id,
       size: size || null,
@@ -125,10 +113,8 @@ export const addToCart = asyncHandler(async (req, res, next) => {
     });
   }
 
-  // 11. save user
   await user.save();
 
-  // 12. send response
   res.status(200).json({
     success: true,
     message: "Product added to cart",
@@ -137,79 +123,84 @@ export const addToCart = asyncHandler(async (req, res, next) => {
 
 // ----------------- UPDATE CART PRODUCT -----------------
 export const updateCartProduct = asyncHandler(async (req, res, next) => {
-  // 1. take user from middleware if not authenticated user then throw error
+  // 1. get user
   const user = req.user;
   if (!user) {
     return next(new ErrorHandler("User not authenticated", 401));
   }
 
-  // 2. destructure all fields
+  // 2. destructure
   const { id, size, variant, type } = req.body;
 
-  // 3. check any field is not empty
-  if (!size || !variant) {
+  // 3. validation
+  if (!id || !size || !variant || !type) {
     return next(new ErrorHandler("Please provide all fields", 400));
   }
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new ErrorHandler("product id is not valid", 400));
+    return next(new ErrorHandler("Product id is not valid", 400));
   }
 
-  // 4. check type is available
-  if (!["increment", "decrement"].includes(type)) {
-    return next("Invalid Update type", 400);
+  if (!["increment", "decrement"].includes(type.toLowerCase())) {
+    return next(new ErrorHandler("Invalid update type", 400));
   }
 
-  // 5. find product
+  // 4. find product
   const product = await Product.findById(id);
-  if (!product) return next("product not available", 400);
+  if (!product) {
+    return next(new ErrorHandler("Product not available", 404));
+  }
 
-  // 6. find cart item in user cart
-  const cartItem = user.cart.find((item) => {
-    return (
-      item.product._id.toString() === id &&
+  // 5. find cart item
+  const cartItem = user.cart.find(
+    (item) =>
+      item.product.toString() === id &&
       item.size.toLowerCase() === size.toLowerCase() &&
-      item.variant.toLowerCase() === variant.toLowerCase()
-    );
-  });
+      item.variant.toLowerCase() === variant.toLowerCase(),
+  );
 
-  // 7. if cart item not found then throw error
   if (!cartItem) {
     return next(new ErrorHandler("Cart item not found", 404));
   }
 
-  // 8. type === increment then +1
+  // 6. find variant
+  const selectedVariant = product.variants.find(
+    (v) => v.color.toLowerCase() === variant.toLowerCase(),
+  );
+
+  if (!selectedVariant) {
+    return next(new ErrorHandler("Variant not found", 404));
+  }
+
+  // 7. find size
+  const selectedSize = selectedVariant.sizes?.find(
+    (s) => s.size.toLowerCase() === size.toLowerCase(),
+  );
+
+  if (!selectedSize) {
+    return next(new ErrorHandler("Size not found", 404));
+  }
+
+  const stock = selectedSize.stock || selectedVariant.stock || 0;
+
+  // 8. increment
   if (type.toLowerCase() === "increment") {
-    // quantity is not greater than stock if greter than stock then throw error
-    const selectVariant = product.variants?.find(
-      (v) => v.color?.name.toLowerCase() === variant.toLowerCase(),
-    );
-
-    const stock =
-      selectVariant?.sizes?.find(
-        (s) => s.size.toLowerCase() === size.toLowerCase(),
-      )?.stock ||
-      selectVariant?.stock ||
-      0;
-
     if (cartItem.quantity + 1 > stock) {
       return next(new ErrorHandler("Stock limit reached", 400));
     }
-    // quantity + 1
+
     cartItem.quantity += 1;
   }
 
-  // 9. decrement quantity
+  // 9. decrement
   if (type.toLowerCase() === "decrement") {
-    // cart quantity is greter then 1 then -1
     if (cartItem.quantity > 1) {
       cartItem.quantity -= 1;
     } else {
-      // if cart quantity less than 1 then removed from cart
       user.cart = user.cart.filter(
         (item) =>
           !(
-            item.product._id.toString() === id &&
+            item.product.toString() === id &&
             item.size.toLowerCase() === size.toLowerCase() &&
             item.variant.toLowerCase() === variant.toLowerCase()
           ),
@@ -217,13 +208,13 @@ export const updateCartProduct = asyncHandler(async (req, res, next) => {
     }
   }
 
-  // 10. save user
+  // 10. save
   await user.save();
 
-  // 11. populate user cart
+  // 11. populate cart
   const updatedUser = await getPopulatedUser("cart.product", user._id);
 
-  // 12. send response
+  // 12. response
   res.status(200).json({
     success: true,
     cart: formatResponse(updatedUser.cart),
@@ -232,55 +223,53 @@ export const updateCartProduct = asyncHandler(async (req, res, next) => {
 
 // ----------------- REMOVE CART PRODUCT -----------------
 export const removeFromCart = asyncHandler(async (req, res, next) => {
-  // 1. take user from middelware and check user is authenticated
+  // 1. check user
   const user = req.user;
   if (!user) {
     return next(new ErrorHandler("User not authenticated", 401));
   }
 
-  // 2. destructure all fields
+  // 2. destructure
   const { id, size, variant } = req.body;
 
-  // 3. validation id is not available
-  if (!id) return next(new ErrorHandler("id is required", 400));
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new ErrorHandler("id is invalid", 400));
+  // 3. validation
+  if (!id) {
+    return next(new ErrorHandler("Product id is required", 400));
   }
 
-  // 4. find product
-  const product = await Product.findById(id);
-  if (!product) return next(new ErrorHandler("product not found", 404));
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(new ErrorHandler("Invalid product id", 400));
+  }
 
-  // 5. find cart item in user cart
-  const cartItem = user.cart.find((item) => {
-    return (
-      item.product._id.toString() === id &&
-      item.size.toLowerCase() === size.toLowerCase() &&
-      item.variant.toLowerCase() === variant.toLowerCase()
-    );
-  });
-  
-  // 6. cart item not exist then throw error
-  if(!cartItem) return next(new ErrorHandler("cart item not exist", 400));
+  // 4. find cart item
+  const cartItem = user.cart.find(
+    (item) =>
+      item.product.toString() === id &&
+      item?.size?.toLowerCase() === size?.toLowerCase() &&
+      item?.variant?.toLowerCase() === variant?.toLowerCase(),
+  );
 
-  // 7. cart item is exist then removed from cart
+  if (!cartItem) {
+    return next(new ErrorHandler("Cart item not found", 404));
+  }
+
+  // 5. remove item
   user.cart = user.cart.filter(
     (item) =>
       !(
-        item.product._id.toString() === id &&
-        item.size.toLowerCase() === size.toLowerCase() &&
-        item.variant.toLowerCase() === variant.toLowerCase()
+        item.product.toString() === id &&
+        item?.size?.toLowerCase() === size?.toLowerCase() &&
+        item?.variant?.toLowerCase() === variant?.toLowerCase()
       ),
   );
 
-  // 8. save user
+  // 6. save user
   await user.save();
 
-  // 9. update user with full cart data
+  // 7. populate updated cart
   const updatedUser = await getPopulatedUser("cart.product", user._id);
 
-  // 10. send response
+  // 8. response
   res.status(200).json({
     success: true,
     message: "Item removed from cart",
@@ -291,6 +280,7 @@ export const removeFromCart = asyncHandler(async (req, res, next) => {
 // ----------------- GET CART SUMMARY -----------------
 export const cartSummary = asyncHandler(async (req, res, next) => {
   const user = req.user;
+
   if (!user) {
     return next(new ErrorHandler("User not authenticated", 401));
   }
@@ -303,40 +293,48 @@ export const cartSummary = asyncHandler(async (req, res, next) => {
 
   let subtotal = 0;
   let discountAmount = 0;
+  let totalItems = 0;
 
   populatedUser.cart.forEach((item) => {
     if (!item.product) return;
 
     const product = item.product;
 
-    const mrp = product.mrpPrice || 0;
-    const discountPercent = product.discountPercentage || 0;
+    // find variant (color)
+    const variantObj = product.variants?.find(
+      (v) => v.color.toLowerCase() === item.variant.toLowerCase()
+    );
 
-    const productDiscount = (mrp * discountPercent) / 100;
+    if (!variantObj) return;
+
+    const mrp = variantObj.mrpPrice || 0;
+    const discountPercent = variantObj.discountPercentage || 0;
+
+    const discount = (mrp * discountPercent) / 100;
 
     subtotal += mrp * item.quantity;
-    discountAmount += productDiscount * item.quantity;
+    discountAmount += discount * item.quantity;
+
+    totalItems += item.quantity;
   });
 
-  // Shipping Logic
-  const shipping = subtotal >= 100 ? 0 : 40;
+  // shipping logic
+  let shipping = 0;
 
-  // Grand Total Calculation
+  if (totalItems > 0) {
+    shipping = subtotal >= 100 ? 0 : 40;
+  }
+
   const grandTotal = subtotal - discountAmount + shipping;
 
   res.status(200).json({
     success: true,
-    data: {
-      summary: {
-        subtotal: Number(subtotal.toFixed(2)),
-        discount: Number(discountAmount.toFixed(2)),
-        shipping,
-        grandTotal: Number(grandTotal.toFixed(2)),
-        totalItems: populatedUser.cart.reduce(
-          (acc, item) => acc + item.quantity,
-          0,
-        ),
-      },
+    summary: {
+      subtotal: Number(subtotal.toFixed(2)),
+      discount: Number(discountAmount.toFixed(2)),
+      shipping,
+      grandTotal: Number(grandTotal.toFixed(2)),
+      totalItems,
     },
   });
 });

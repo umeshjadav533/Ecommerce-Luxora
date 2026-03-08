@@ -43,18 +43,6 @@ const productSchema = new mongoose.Schema(
       index: true,
     },
 
-    mrpPrice: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-
-    discountPercentage: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-
     rating: {
       type: Number,
       default: 0,
@@ -65,11 +53,9 @@ const productSchema = new mongoose.Schema(
     variants: [
       {
         color: {
-          name: {
-            type: String,
-            required: true,
-            trim: true,
-          },
+          type: String,
+          required: true,
+          trim: true,
         },
 
         images: [
@@ -99,6 +85,18 @@ const productSchema = new mongoose.Schema(
             },
           },
         ],
+
+        mrpPrice: {
+          type: Number,
+          required: true,
+          min: 0
+        },
+
+        discountPercentage: {
+          type: Number,
+          default: 0,
+      min: 0,
+        }
       },
     ],
 
