@@ -1,11 +1,10 @@
 /* Google Fonts link */
-@import url("https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inika:wght@400;700&family=New+Rocker&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&family=Playwrite+US+Trad+Guides&family=Titan+One&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&family=Fontdiner+Swanky&family=Great+Vibes&family=Inika:wght@400;700&family=New+Rocker&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&family=Playwrite+PL+Guides&family=Playwrite+US+Trad+Guides&family=Sansita:ital,wght@0,400;0,700;0,800;0,900;1,400;1,700;1,800;1,900&family=Titan+One&display=swap');
 
 @import "tailwindcss";
 
 * {
   /* font-family: "Inika", serif; */
-  font-family: "Outfit", sans-serif;
   font-weight: 400;
   font-style: normal;
   user-select: none;
@@ -14,6 +13,7 @@
 body {
   margin: 0;
   padding: 0;
+  font-family: "Outfit", sans-serif;
   /* background-color: #ffffff; */
   /* background-color: #F2F1EC; */
   background-color: #ECE9E2;
@@ -24,6 +24,10 @@ body {
   font-family: "New Rocker", system-ui;
   font-weight: 400;
   font-style: normal;
+}
+
+.premium-cursive{
+  font-family: "Playwrite PL Guides", cursive;
 }
 
 .truncate-title{

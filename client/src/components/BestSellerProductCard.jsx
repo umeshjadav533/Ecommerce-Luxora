@@ -4,24 +4,24 @@ import { ShoppingBag } from "lucide-react";
 
 export default function BestSellerProductCard({ product }) {
   return (
-    <div className="rounded-2xl h-70 flex flex-col justify-between gap-2 p-2 bg-white">
+    <div className="rounded-2xl h-60 flex flex-col justify-between p-2 bg-white">
       <div className="relative">
         <Link
           to={`/product/${product._id}`}
-          className="h-40 overflow-hidden flex flex-col justify-center items-center"
+          className="h-35 overflow-hidden flex flex-col justify-center items-center"
         >
           <img
             src={product?.variants[0]?.images[0]}
             className="w-full h-full object-contain"
           />
         </Link>
-        <span className="absolute top-3 left-3 bg-[#E0DACF] px-3 py-1 rounded-full text-sm">
-          NEW
+        <span className="absolute top-3 left-3 bg-[#E0DACF] px-3 py-1 rounded-full text-sm" style={{fontWeight: 600}}>
+          BEST
         </span>
       </div>
 
-      <div className="h-30 flex flex-col gap-2 justify-end">
-        <span className="truncate-title">{product.title}</span>
+      <div className="h-20 flex flex-col justify-end">
+        <span className="truncate-title text-sm">{product.title}</span>
         <div className="flex justify-between items-center">
           <div className="flex gap-2">
             <span className="text-xl">
@@ -31,7 +31,7 @@ export default function BestSellerProductCard({ product }) {
               ${product.mrpPrice}
             </span>
           </div>
-          <button className="flex justify-center items-center gap-4 hover:bg-black hover:text-white px-4 py-1.5 border-2 text-sm rounded-full cursor-pointer">
+          <button className="flex justify-center items-center gap-2.5 hover:bg-black hover:text-white px-3 py-1 border-2 text-sm rounded-full cursor-pointer">
             <span>
               <ShoppingBag size={20} />
             </span>
