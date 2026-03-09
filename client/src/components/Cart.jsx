@@ -92,7 +92,7 @@ const Cart = () => {
           </div>
 
           <div className="flex justify-between text-base">
-            <span>Tax (18%)</span>
+            <span>Tax</span>
             <span className="outfit-font">${cartSummary?.tax.toFixed(2)}</span>
           </div>
 

@@ -4,7 +4,6 @@ import HomePage from "./pages/HomePage";
 import NavigationPage from "./pages/NavigationPage";
 import StudioPage from "./pages/StudioPage";
 import WishlistPage from "./pages/WishlistPage";
-import ProductDetailPage from "./pages/ProductDetailPage";
 import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import FotgotPasswordPage from "./pages/FotgotPasswordPage";
@@ -20,6 +19,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import SearchPage from "./pages/SearchPage";
 import Cart from "./components/Cart";
 import ProfilePage from "./pages/ProfilePage";
+import ProductPage from "./pages/ProductPage";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -77,10 +77,10 @@ const App = () => {
           <Route path="/:pageName" element={<NavigationPage />} />
           <Route path="/studio" element={<StudioPage />} />
           <Route path="/wishlist" element={<WishlistPage />} />
-          <Route path="/product/:productId" element={<ProductDetailPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/product/:id" element={<ProductPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -17,7 +17,7 @@ export default function HomePage() {
     dispatch(categoryListAsyncThunk());
     dispatch(getAllProductsAsyncThunk({ query: "" }));
   }, [dispatch]);
-  
+
   return (
     <div className="p-3">
       <HeroSection />
@@ -37,9 +37,15 @@ export default function HomePage() {
                 />
               </Link>
 
-              <button className="absolute left-1/2 bottom-5 -translate-x-1/2 px-6 py-1 hover:bg-white hover:text-black rounded-full text-white border-2 border-white font-bold transition-all duration-700 ease-in-out group-hover:bottom-1/2 group-hover:translate-y-1/2 text-sm">
+              <Link
+                to={item.slug}
+                onClick={() => {
+                  dispatch(getAllProductsAsyncThunk({ query: item.slug }));
+                }}
+                className="absolute left-1/2 bottom-5 -translate-x-1/2 px-6 py-1 hover:bg-white hover:text-black rounded-full text-white border-2 border-white font-bold transition-all duration-700 ease-in-out group-hover:bottom-1/2 group-hover:translate-y-1/2 text-sm"
+              >
                 SHOP
-              </button>
+              </Link>
             </li>
           ))}
       </ul>
@@ -48,7 +54,7 @@ export default function HomePage() {
       <BestSeller />
       <div>
         <ProductSlider
-        title="Explore More"
+          title="Explore More"
           data={products}
           renderItem={(product) => (
             <ProductCard product={product} key={product._id} />

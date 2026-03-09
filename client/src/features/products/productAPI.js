@@ -8,7 +8,7 @@ export const getAllProductsAsyncThunk = createApiThunk(
 
 export const getSingleProductAsyncThunk = createApiThunk(
     "singleProduct",
-    "post",
+    "get",
     (data) => `/product/${data.id}`
 )
 
