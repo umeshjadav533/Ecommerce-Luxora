@@ -15,7 +15,7 @@ export default function HomePage() {
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(categoryListAsyncThunk());
-    dispatch(getAllProductsAsyncThunk());
+    dispatch(getAllProductsAsyncThunk({ query: "" }));
   }, [dispatch]);
   
   return (

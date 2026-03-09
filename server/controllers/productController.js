@@ -5,33 +5,42 @@ import mongoose from "mongoose";
 
 // ----------------- GET ALL PRODUCTS AND FILTERED PRODUCTS -----------------
 export const getAllProducts = asyncHandler(async (req, res, next) => {
-
   const user = req.user;
   if (!user) {
     return next(new ErrorHandler("User not authenticated", 401));
   }
 
-  // query params
-  const { limit = 12, query = "" } = req.query;
+  const { limit, query = "" } = req.query;
 
   let filter = {};
 
   if (query.trim() !== "") {
+    const search = query.trim();
+
     filter = {
       $or: [
-        { title: { $regex: query, $options: "i" } },
-        { description: { $regex: query, $options: "i" } },
-        { brand: { $regex: query, $options: "i" } },
-        { category: { $regex: query, $options: "i" } },
-        { subCategory: { $regex: query, $options: "i" } },
-        { tags: { $regex: query, $options: "i" } },
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { brand: { $regex: search, $options: "i" } },
+        { tags: { $regex: search, $options: "i" } },
+
+        // exact match for category
+        { category: { $regex: `^${search}$`, $options: "i" } },
+
+        // exact match for subCategory
+        { subCategory: { $regex: `^${search}$`, $options: "i" } },
       ],
     };
   }
 
-  const products = await Product.find(filter)
-    .sort({ createdAt: -1 })
-    .limit(Number(limit));
+  let productQuery = Product.find(filter).sort({ createdAt: -1 });
+
+  // apply limit only if valid
+  if (limit && !isNaN(limit)) {
+    productQuery = productQuery.limit(Number(limit));
+  }
+
+  const products = await productQuery;
 
   res.status(200).json({
     success: true,
@@ -113,17 +122,15 @@ export const getProductsByTag = asyncHandler(async (req, res, next) => {
   const { tag, category } = req.body;
 
   let query = { tags: tag };
-  if(category){
+  if (category) {
     query.category = category;
   }
-  
+
   if (!tag?.trim() === "") {
     return next(new ErrorHandler("Tag is required", 400));
   }
 
-  const products = await Product.find(query)
-    .sort({ createdAt: -1 })
-    .limit(8);
+  const products = await Product.find(query).sort({ createdAt: -1 }).limit(8);
 
   if (!products || products.length === 0) {
     return next(new ErrorHandler("Products not found", 404));

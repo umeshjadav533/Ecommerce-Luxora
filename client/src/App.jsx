@@ -19,6 +19,7 @@ import { userProfileAsyncThunk } from "./features/auth/authAPI";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import SearchPage from "./pages/SearchPage";
 import Cart from "./components/Cart";
+import ProfilePage from "./pages/ProfilePage";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -79,6 +80,7 @@ const App = () => {
           <Route path="/product/:productId" element={<ProductDetailPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Routes>
     </BrowserRouter>

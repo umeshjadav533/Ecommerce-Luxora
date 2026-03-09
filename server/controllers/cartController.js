@@ -253,66 +253,7 @@ export const removeFromCart = asyncHandler(async (req, res, next) => {
 });
 
 // ----------------- GET CART SUMMARY -----------------
-// export const cartSummary = asyncHandler(async (req, res, next) => {
-//   const user = req.user;
 
-//   if (!user) {
-//     return next(new ErrorHandler("User not authenticated", 401));
-//   }
-
-//   const populatedUser = await getPopulatedUser("cart.product", user._id);
-
-//   if (!populatedUser) {
-//     return next(new ErrorHandler("User not found", 404));
-//   }
-
-//   let subtotal = 0;
-//   let discountAmount = 0;
-//   let totalItems = 0;
-
-//   populatedUser.cart.forEach((item) => {
-//     if (!item.product) return;
-
-//     const product = item.product;
-
-//     // find variant (color)
-//     const variantObj = product.variants?.find(
-//       (v) => v.color.toLowerCase() === item.variant.toLowerCase()
-//     );
-
-//     if (!variantObj) return;
-
-//     const mrp = variantObj.mrpPrice || 0;
-//     const discountPercent = variantObj.discountPercentage || 0;
-
-//     const discount = (mrp * discountPercent) / 100;
-
-//     subtotal += mrp * item.quantity;
-//     discountAmount += discount * item.quantity;
-
-//     totalItems += item.quantity;
-//   });
-
-//   // shipping logic
-//   let shipping = 0;
-
-//   if (totalItems > 0) {
-//     shipping = subtotal >= 100 ? 0 : 40;
-//   }
-
-//   const grandTotal = subtotal - discountAmount + shipping;
-
-//   res.status(200).json({
-//     success: true,
-//     summary: {
-//       subTotal: Number(subtotal.toFixed(2)),
-//       discount: Number(discountAmount.toFixed(2)),
-//       shipping,
-//       grandTotal: Number(grandTotal.toFixed(2)),
-//       totalItems,
-//     },
-//   });
-// });
 export const cartSummary = asyncHandler(async (req, res, next) => {
   const user = req.user;
   if (!user) return next(new ErrorHandler("User not authenticated", 401));

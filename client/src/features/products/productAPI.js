@@ -1,9 +1,9 @@
 import createApiThunk from "../../utils/createAsyncThunkHelper.js";
 
 export const getAllProductsAsyncThunk = createApiThunk(
-    "products",
-    "get",
-    "/product/"
+  "products",
+  "get",
+  (data) => `/product?limit=${data.limit}&query=${data.query}`
 );
 
 export const getSingleProductAsyncThunk = createApiThunk(

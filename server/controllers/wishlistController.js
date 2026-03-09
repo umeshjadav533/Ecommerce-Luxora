@@ -35,7 +35,7 @@ export const getWishlistItems = asyncHandler(async (req, res, next) => {
   // 4. send response
   res.status(200).json({
     success: true,
-    wishlist: formatResponse(wishlist),
+    products: formatResponse(wishlist),
   });
 });
 
@@ -110,9 +110,13 @@ export const addToWishlist = asyncHandler(async (req, res, next) => {
   // 9. save
   await user.save();
 
+  // Populate cart before returning
+  const updatedUser = await getPopulatedUser("wishlist.product", user._id);
+
   // 10. response
   res.status(200).json({
     success: true,
+    products: formatResponse(updatedUser.wishlist),
     message: wishlistItem
       ? "Product removed from wishlist"
       : "Product added to wishlist",
@@ -167,6 +171,6 @@ export const removeFromWishlist = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "Item removed from wishlist",
-    wishlist: updatedUser.wishlist,
+    products: formatResponse(updatedUser.wishlist),
   });
 });

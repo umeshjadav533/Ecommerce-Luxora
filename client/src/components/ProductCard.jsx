@@ -20,13 +20,13 @@ export default function ProductCard({ product }) {
             BEST SELLER
           </span>
         ) : null}
-        <span className="absolute top-3 right-3">
+        <div className="absolute top-3 right-3">
           <LikedButton
             id={product._id}
-            size={product?.variants[0]?.sizes[0]?.size}
-            variant={product?.variants[0]?.color?.name}
+            size={product?.variants[0]?.sizes[0]?.size || null}
+            variant={product?.variants[0]?.color || null}
           />
-        </span>
+        </div>
       </div>
       <div className="w-full h-25 overflow-hidden flex flex-col justify-end gap-1">
         <p className="truncate-title text-sm text-gray-900">{product.title}</p>

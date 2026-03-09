@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { getCartProductsAsyncThunk, getcartSummaryAsyncThunk, removeCartProductAsyncThunk, updateCartProductAsyncThunk } from "../features/cart/cartAPI";
-import { IdCard, Minus, Plus } from "lucide-react";
+import { IdCard, Minus, Plus, Trash } from "lucide-react";
 import { useDispatch } from "react-redux";
 
 export default function CartProductCard({ product }) {
@@ -55,7 +55,7 @@ export default function CartProductCard({ product }) {
             })
           }
         >
-          Remove
+          <Trash size={20}/>
         </button>
 
         <div className="grid grid-cols-3 border border-gray-300 rounded-full overflow-hidden shadow-sm">
