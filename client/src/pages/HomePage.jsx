@@ -17,7 +17,7 @@ export default function HomePage() {
     dispatch(categoryListAsyncThunk());
     dispatch(getAllProductsAsyncThunk());
   }, [dispatch]);
-  console.log(products);
+  
   return (
     <div className="p-3">
       <HeroSection />
@@ -47,14 +47,8 @@ export default function HomePage() {
       <NewArrival />
       <BestSeller />
       <div>
-        {/* <div className="grid grid-cols-4 gap-3">
-          {products &&
-            products.length > 1 &&
-            products.map((product) => (
-              <ProductCard product={product} key={product._id} />
-            ))}
-        </div> */}
         <ProductSlider
+        title="Explore More"
           data={products}
           renderItem={(product) => (
             <ProductCard product={product} key={product._id} />

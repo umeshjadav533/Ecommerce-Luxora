@@ -1,5 +1,5 @@
 /* Google Fonts link */
-@import url('https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&family=Fontdiner+Swanky&family=Great+Vibes&family=Inika:wght@400;700&family=New+Rocker&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&family=Playwrite+PL+Guides&family=Playwrite+US+Trad+Guides&family=Sansita:ital,wght@0,400;0,700;0,800;0,900;1,400;1,700;1,800;1,900&family=Titan+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&family=Fontdiner+Swanky&family=Great+Vibes&family=IM+Fell+DW+Pica+SC&family=Inika:wght@400;700&family=Molle:ital@1&family=New+Rocker&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&family=Playwrite+PL+Guides&family=Playwrite+US+Trad+Guides&family=Sansita:ital,wght@0,400;0,700;0,800;0,900;1,400;1,700;1,800;1,900&family=Titan+One&display=swap');
 
 @import "tailwindcss";
 
@@ -30,10 +30,62 @@ body {
   font-family: "Playwrite PL Guides", cursive;
 }
 
+.molle-regular-italic {
+  font-family: "Molle", cursive;
+  font-weight: 400;
+  font-style: italic;
+}
+
 .truncate-title{
   display: -webkit-box;
   -webkit-line-clamp: 2; /* 2 lines tak show karega */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+
+.men-menu-section {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.men-nav-item:hover .men-menu-section {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.women-menu-section {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.women-nav-item:hover .women-menu-section {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.kids-menu-section {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.kids-nav-item:hover .kids-menu-section {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
 }

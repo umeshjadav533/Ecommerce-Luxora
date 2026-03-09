@@ -17,6 +17,8 @@ import { useDispatch } from "react-redux";
 import { useEffect } from "react";
 import { userProfileAsyncThunk } from "./features/auth/authAPI";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import SearchPage from "./pages/SearchPage";
+import Cart from "./components/Cart";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -73,8 +75,10 @@ const App = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/:pageName" element={<NavigationPage />} />
           <Route path="/studio" element={<StudioPage />} />
-          <Route path="/favourites" element={<WishlistPage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/product/:productId" element={<ProductDetailPage />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/cart" element={<Cart />} />
         </Route>
       </Routes>
     </BrowserRouter>

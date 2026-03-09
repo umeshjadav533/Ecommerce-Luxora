@@ -1,5 +1,28 @@
+import { MoveLeft, MoveRight } from "lucide-react";
 import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
+
+function CustomLeftArrow({ onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="absolute top-1/2 left-35 p-3 rounded-full hover:bg-black hover:text-white cursor-pointer border-5"
+    >
+      <MoveLeft />
+    </button>
+  );
+}
+
+function CustomRightArrow({ onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="absolute top-1/2 right-35 p-3 rounded-full hover:bg-black hover:text-white cursor-pointer border-5"
+    >
+      <MoveRight />
+    </button>
+  );
+}
 
 export default function Slider({ data, renderItem }) {
   const responsive = {
@@ -21,13 +44,15 @@ export default function Slider({ data, renderItem }) {
     },
   };
   return (
-    <div className="">
+    <div className="relative">
       <Carousel
         responsive={responsive}
-        swipeable={false}
+        swipeable={true}
         infinite={true}
         slidesToSlide={1}
-        itemClass=""
+        customLeftArrow={<CustomLeftArrow />}
+        customRightArrow={<CustomRightArrow />}
+        className="relative"
       >
         {data?.map((item) => renderItem(item))}
       </Carousel>

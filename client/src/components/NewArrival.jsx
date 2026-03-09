@@ -40,10 +40,10 @@ export default function NewArrival() {
               <div className="flex gap-2">
                 <span className="text-2xl">
                   $
-                  {calculatePrice(product.mrpPrice, product.discountPercentage)}
+                  {calculatePrice(product?.variants[0]?.mrpPrice, product?.variants[0]?.discountPercentage)}
                 </span>
                 <span className="text-2xl line-through text-red-600">
-                  ${product.mrpPrice}
+                  ${product?.variants[0]?.mrpPrice}
                 </span>
               </div>
               <Link

@@ -12,19 +12,19 @@ export const getAllProducts = asyncHandler(async (req, res, next) => {
   }
 
   // query params
-  const { limit = 12, search = "" } = req.query;
+  const { limit = 12, query = "" } = req.query;
 
   let filter = {};
 
-  if (search.trim() !== "") {
+  if (query.trim() !== "") {
     filter = {
       $or: [
-        { title: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-        { brand: { $regex: search, $options: "i" } },
-        { category: { $regex: search, $options: "i" } },
-        { subCategory: { $regex: search, $options: "i" } },
-        { tags: { $regex: search, $options: "i" } },
+        { title: { $regex: query, $options: "i" } },
+        { description: { $regex: query, $options: "i" } },
+        { brand: { $regex: query, $options: "i" } },
+        { category: { $regex: query, $options: "i" } },
+        { subCategory: { $regex: query, $options: "i" } },
+        { tags: { $regex: query, $options: "i" } },
       ],
     };
   }

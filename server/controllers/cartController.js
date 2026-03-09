@@ -41,68 +41,38 @@ export const getCartProducts = asyncHandler(async (req, res, next) => {
 // ----------------- ADD TO CART -----------------
 export const addToCart = asyncHandler(async (req, res, next) => {
   const user = req.user;
-  if (!user) {
-    return next(new ErrorHandler("User not authenticated", 401));
-  }
+  if (!user) return next(new ErrorHandler("User not authenticated", 401));
 
   const { id, size, variant, quantity } = req.body;
-
-  if (!id || !quantity) {
-    return next(new ErrorHandler("Please provide required fields", 400));
-  }
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new ErrorHandler("Invalid product id", 400));
-  }
+  if (!id || !quantity) return next(new ErrorHandler("Please provide required fields", 400));
+  if (!mongoose.Types.ObjectId.isValid(id)) return next(new ErrorHandler("Invalid product id", 400));
 
   const product = await Product.findById(id);
-  if (!product) {
-    return next(new ErrorHandler("Product not found", 404));
-  }
+  if (!product) return next(new ErrorHandler("Product not found", 404));
 
-  let selectedVariant = null;
+  let selectedVariant = variant
+    ? product.variants.find(v => v.color.toLowerCase() === variant.toLowerCase())
+    : null;
+  if (variant && !selectedVariant) return next(new ErrorHandler("Variant not found", 404));
 
-  if (variant) {
-    selectedVariant = product.variants.find(
-      (v) => v.color.toLowerCase() === variant.toLowerCase(),
-    );
-
-    if (!selectedVariant) {
-      return next(new ErrorHandler("Variant not found", 404));
-    }
-  }
-
-  let selectedSize = null;
-
-  if (size) {
-    selectedSize = selectedVariant?.sizes?.find(
-      (s) => s.size.toLowerCase() === size.toLowerCase(),
-    );
-
-    if (!selectedSize) {
-      return next(new ErrorHandler("Size not found", 404));
-    }
-  }
+  let selectedSize = size
+    ? selectedVariant?.sizes?.find(s => s.size.toLowerCase() === size.toLowerCase())
+    : null;
+  if (size && !selectedSize) return next(new ErrorHandler("Size not found", 404));
 
   const availableStock = selectedSize?.stock || selectedVariant?.stock || 0;
+  if (quantity > availableStock) return next(new ErrorHandler("No more stock available", 400));
 
-  if (quantity > availableStock) {
-    return next(new ErrorHandler("No more stock available", 400));
-  }
-
-  const cartItem = user.cart.find((item) => {
-    return (
-      item.product.toString() === id &&
-      (!variant || item.variant?.toLowerCase() === variant.toLowerCase()) &&
-      (!size || item.size?.toLowerCase() === size.toLowerCase())
-    );
-  });
+  const cartItem = user.cart.find(item =>
+    item.product.toString() === id &&
+    (!variant || item.variant?.toLowerCase() === variant.toLowerCase()) &&
+    (!size || item.size?.toLowerCase() === size.toLowerCase())
+  );
 
   if (cartItem) {
     if (cartItem.quantity + quantity > availableStock) {
       return next(new ErrorHandler("No more stock available", 400));
     }
-
     cartItem.quantity += quantity;
   } else {
     user.cart.push({
@@ -115,14 +85,19 @@ export const addToCart = asyncHandler(async (req, res, next) => {
 
   await user.save();
 
+  // Populate cart before returning
+  const updatedUser = await getPopulatedUser("cart.product", user._id);
+
   res.status(200).json({
     success: true,
-    message: "Product added to cart",
+    cart: formatResponse(updatedUser.cart),
+    message: "Product added to cart"
   });
 });
 
 // ----------------- UPDATE CART PRODUCT -----------------
 export const updateCartProduct = asyncHandler(async (req, res, next) => {
+  
   // 1. get user
   const user = req.user;
   if (!user) {
@@ -131,7 +106,7 @@ export const updateCartProduct = asyncHandler(async (req, res, next) => {
 
   // 2. destructure
   const { id, size, variant, type } = req.body;
-
+  
   // 3. validation
   if (!id || !size || !variant || !type) {
     return next(new ErrorHandler("Please provide all fields", 400));
@@ -278,21 +253,74 @@ export const removeFromCart = asyncHandler(async (req, res, next) => {
 });
 
 // ----------------- GET CART SUMMARY -----------------
+// export const cartSummary = asyncHandler(async (req, res, next) => {
+//   const user = req.user;
+
+//   if (!user) {
+//     return next(new ErrorHandler("User not authenticated", 401));
+//   }
+
+//   const populatedUser = await getPopulatedUser("cart.product", user._id);
+
+//   if (!populatedUser) {
+//     return next(new ErrorHandler("User not found", 404));
+//   }
+
+//   let subtotal = 0;
+//   let discountAmount = 0;
+//   let totalItems = 0;
+
+//   populatedUser.cart.forEach((item) => {
+//     if (!item.product) return;
+
+//     const product = item.product;
+
+//     // find variant (color)
+//     const variantObj = product.variants?.find(
+//       (v) => v.color.toLowerCase() === item.variant.toLowerCase()
+//     );
+
+//     if (!variantObj) return;
+
+//     const mrp = variantObj.mrpPrice || 0;
+//     const discountPercent = variantObj.discountPercentage || 0;
+
+//     const discount = (mrp * discountPercent) / 100;
+
+//     subtotal += mrp * item.quantity;
+//     discountAmount += discount * item.quantity;
+
+//     totalItems += item.quantity;
+//   });
+
+//   // shipping logic
+//   let shipping = 0;
+
+//   if (totalItems > 0) {
+//     shipping = subtotal >= 100 ? 0 : 40;
+//   }
+
+//   const grandTotal = subtotal - discountAmount + shipping;
+
+//   res.status(200).json({
+//     success: true,
+//     summary: {
+//       subTotal: Number(subtotal.toFixed(2)),
+//       discount: Number(discountAmount.toFixed(2)),
+//       shipping,
+//       grandTotal: Number(grandTotal.toFixed(2)),
+//       totalItems,
+//     },
+//   });
+// });
 export const cartSummary = asyncHandler(async (req, res, next) => {
   const user = req.user;
-
-  if (!user) {
-    return next(new ErrorHandler("User not authenticated", 401));
-  }
+  if (!user) return next(new ErrorHandler("User not authenticated", 401));
 
   const populatedUser = await getPopulatedUser("cart.product", user._id);
+  if (!populatedUser) return next(new ErrorHandler("User not found", 404));
 
-  if (!populatedUser) {
-    return next(new ErrorHandler("User not found", 404));
-  }
-
-  let subtotal = 0;
-  let discountAmount = 0;
+  let subTotal = 0;
   let totalItems = 0;
 
   populatedUser.cart.forEach((item) => {
@@ -304,37 +332,30 @@ export const cartSummary = asyncHandler(async (req, res, next) => {
     const variantObj = product.variants?.find(
       (v) => v.color.toLowerCase() === item.variant.toLowerCase()
     );
-
     if (!variantObj) return;
 
     const mrp = variantObj.mrpPrice || 0;
-    const discountPercent = variantObj.discountPercentage || 0;
-
-    const discount = (mrp * discountPercent) / 100;
-
-    subtotal += mrp * item.quantity;
-    discountAmount += discount * item.quantity;
-
+    subTotal += mrp * item.quantity;
     totalItems += item.quantity;
   });
 
   // shipping logic
-  let shipping = 0;
+  let shipping = totalItems > 0 && subTotal < 100 ? 40 : 0;
 
-  if (totalItems > 0) {
-    shipping = subtotal >= 100 ? 0 : 40;
-  }
+  // tax logic (example: 18% GST)
+  const taxRate = 0.18;
+  const tax = Number((subTotal * taxRate).toFixed(2));
 
-  const grandTotal = subtotal - discountAmount + shipping;
+  // total
+  const total = Number((subTotal + tax + shipping).toFixed(2));
 
   res.status(200).json({
     success: true,
     summary: {
-      subtotal: Number(subtotal.toFixed(2)),
-      discount: Number(discountAmount.toFixed(2)),
+      subTotal: Number(subTotal.toFixed(2)),
+      tax,
       shipping,
-      grandTotal: Number(grandTotal.toFixed(2)),
-      totalItems,
+      total,
     },
   });
 });

@@ -1,8 +1,12 @@
 import { Link } from "react-router-dom";
 import calculatePrice from "../utils/priceUtil.js";
 import { ShoppingBag } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { addCartProductAsyncThunk } from "../features/cart/cartAPI.js";
 
 export default function BestSellerProductCard({ product }) {
+  const dispatch = useDispatch();
+  
   return (
     <div className="rounded-2xl h-60 flex flex-col justify-between p-2 bg-white">
       <div className="relative">
@@ -25,13 +29,18 @@ export default function BestSellerProductCard({ product }) {
         <div className="flex justify-between items-center">
           <div className="flex gap-2">
             <span className="text-xl">
-              ${calculatePrice(product.mrpPrice, product.discountPercentage)}
+              ${calculatePrice(product?.variants[0]?.mrpPrice, product?.variants[0]?.discountPercentage)}
             </span>
             <span className="text-xl line-through text-red-600">
-              ${product.mrpPrice}
+              ${product?.variants[0]?.mrpPrice}
             </span>
           </div>
-          <button className="flex justify-center items-center gap-2.5 hover:bg-black hover:text-white px-3 py-1 border-2 text-sm rounded-full cursor-pointer">
+          <button className="flex justify-center items-center gap-2.5 hover:bg-black hover:text-white px-3 py-1 border-2 text-sm rounded-full cursor-pointer" onClick={() => dispatch(addCartProductAsyncThunk({
+            id: product._id,
+            size: product?.variants[0]?.sizes[0].size || null,
+            variant: product?.variants[0]?.color || null,
+            quantity: Number(1)
+          }))}>
             <span>
               <ShoppingBag size={20} />
             </span>

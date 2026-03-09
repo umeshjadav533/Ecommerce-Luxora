@@ -8,7 +8,7 @@ const ProductSlider = ({
   data = [],
   renderItem,
   slidePerMove = 2,
-  itemClass = "px-2",
+  itemClass = "px-1.5",
   showTitleSection = true,
   loop = true,
   superLargeDesktopPerView=4,
@@ -41,9 +41,8 @@ const ProductSlider = ({
   return (
     <div className="w-full">
       {showTitleSection && (
-        <div className="flex justify-between items-center mb-5">
-          <h1 className="text-7xl font-bold">{title}</h1>
-
+        <div className="flex justify-between items-center mb-5 px-3">
+          <h1 className="text-3xl font-bold premium-cursive">{title}</h1>
           <div className="flex gap-3">
             <button
               onClick={() => carouselRef.current?.previous()}

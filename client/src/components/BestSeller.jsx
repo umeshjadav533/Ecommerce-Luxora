@@ -10,7 +10,6 @@ export default function BestSeller() {
   }, [dispatch]);
   const { tagProducts } = useSelector((state) => state.product);
   const [active, setActive] = useState("men");
-  //   console.log(tagProducts[0]?.variants)
   return (
     <div className="my-10 flex flex-col gap-3">
       <div className="flex justify-between items-center px-5">
@@ -56,7 +55,7 @@ export default function BestSeller() {
           )}
         </div>
         <div className="h-[80vh] grid grid-rows-2 gap-3 border rounded-2xl overflow-hidden">
-
+          
         </div>
       </div>
 
