@@ -49,6 +49,34 @@ export const getAllProducts = asyncHandler(async (req, res, next) => {
   });
 });
 
+export const getRelatedProducts = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+  const { limit = 8 } = req.query;
+
+  const product = await Product.findById(id);
+
+  if (!product) {
+    return next(new ErrorHandler("Product not found", 404));
+  }
+
+  const relatedProducts = await Product.find({
+    _id: { $ne: new mongoose.Types.ObjectId(id) }, // current product exclude
+    $or: [
+      { category: product.category },
+      { subCategory: product.subCategory },
+      { tags: { $in: product.tags } }
+    ]
+  })
+    .limit(Number(limit))
+    .sort({ createdAt: -1 });
+
+  res.status(200).json({
+    success: true,
+    totalProducts: relatedProducts.length,
+    products: relatedProducts,
+  });
+});
+
 // ----------------- GET PRODUCT BY ID -----------------
 export const getProductById = asyncHandler(async (req, res, next) => {
   // 1. take user from middleware if user not authenticated then throe error

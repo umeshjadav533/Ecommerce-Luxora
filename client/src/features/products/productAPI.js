@@ -12,6 +12,13 @@ export const getSingleProductAsyncThunk = createApiThunk(
     (data) => `/product/${data.id}`
 )
 
+export const getRelatedProductsAsyncThunk = createApiThunk(
+    "related-products",
+    "get",
+    (data) => `/product/${data.id}?limit=${data.limit}`
+)
+
+
 export const categoryPageProductAsyncThunk = createApiThunk(
     "category-page",
     "get",

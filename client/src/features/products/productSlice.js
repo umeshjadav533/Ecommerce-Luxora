@@ -4,17 +4,20 @@ import {
   getSingleProductAsyncThunk,
   categoryPageProductAsyncThunk,
   getTagProductAsyncThunk,
+  getRelatedProductsAsyncThunk,
 } from "./productAPI.js";
 
 const initialState = {
   products: [],
   singleProduct: null,
+  relatedProducts: [],
   categoryProducts: [],
   tagProducts: [],
 
   loading: {
     productsLoading: false,
     singleProductLoading: false,
+    relatedProductLoading: false,
     categoryProductsLoading: false,
     tagProductsLoading: false
   },
@@ -55,6 +58,20 @@ const productSlice = createSlice({
       .addCase(getSingleProductAsyncThunk.rejected, (state, action) => {
         state.loading.singleProductLoading = false;
         state.singleProduct = [];
+        state.error = action.error.message;
+      })
+
+      // RELATED PRODUCTS
+      .addCase(getRelatedProductsAsyncThunk.pending, (state) => {
+        state.loading.relatedProductLoading = true;
+      })
+      .addCase(getRelatedProductsAsyncThunk.fulfilled, (state, action) => {
+        state.loading.relatedProductLoading = false;
+        state.relatedProducts = action.payload.product;
+      })
+      .addCase(getRelatedProductsAsyncThunk.rejected, (state, action) => {
+        state.loading.relatedProductLoading = false;
+        state.relatedProducts = [];
         state.error = action.error.message;
       })
 

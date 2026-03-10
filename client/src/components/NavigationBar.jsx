@@ -10,7 +10,7 @@ export default function NavigationBar() {
   const [lastScroll, setLastScroll] = useState(0);
   const [hoverLink, setHoverLink] = useState(false);
   const dispatch = useDispatch();
-  const cartProducts = useSelector(state => state.cart.cartProducts);
+  const cartProducts = useSelector((state) => state.cart.cartProducts);
   useEffect(() => {
     const handleScroll = () => {
       const currentScroll = window.scrollY;
@@ -56,7 +56,8 @@ export default function NavigationBar() {
             MEN
           </NavLink>
 
-          <div className="men-menu-section p-5 absolute top-12 left-0 w-full grid grid-cols-5 gap-11 bg-[#ECE9E2] rounded-b-xl">
+          <div
+            className="men-menu-section p-6 absolute top-12 left-0 w-full grid grid-cols-5 gap-11 bg-linear-to-b from-[#F5F3EE] to-[#ECE9E2] rounded-b-xl border border-[#d6d3cb] shadow-lg">
             {menPageMenu.map((menu, index) => (
               <div key={index}>
                 <span
@@ -98,7 +99,8 @@ export default function NavigationBar() {
             WOMEN
           </NavLink>
 
-          <div className="women-menu-section p-5 absolute top-12 left-0 w-full grid grid-cols-5 gap-11 bg-[#ECE9E2] rounded-b-xl">
+          <div
+            className="women-menu-section p-6 absolute top-12 left-0 w-full grid grid-cols-5 gap-11 bg-linear-to-b from-[#F5F3EE] to-[#ECE9E2] rounded-b-xl border border-[#d6d3cb] shadow-lg">
             {womenPageMenu.map((menu, index) => (
               <div key={index}>
                 <span
@@ -140,7 +142,8 @@ export default function NavigationBar() {
             KIDS
           </NavLink>
 
-          <div className="kids-menu-section p-5 absolute top-12 left-0 w-full grid grid-cols-5 gap-11 bg-[#ECE9E2] rounded-b-xl">
+          <div
+            className="kids-menu-section p-6 absolute top-12 left-0 w-full grid grid-cols-5 gap-11 bg-linear-to-b from-[#F5F3EE] to-[#ECE9E2] rounded-b-xl border border-[#d6d3cb] shadow-lg">
             {kidsPageMenu.map((menu, index) => (
               <div key={index}>
                 <span
@@ -192,8 +195,13 @@ export default function NavigationBar() {
           </Link>
         </li>
         <li className="flex justify-center items-center">
-          <button onClick={() => dispatch(toggleCart())} className="cursor-pointer relative">
-            <span><ShoppingBag size={20}/></span>
+          <button
+            onClick={() => dispatch(toggleCart())}
+            className="cursor-pointer relative"
+          >
+            <span>
+              <ShoppingBag size={20} />
+            </span>
             <span className="absolute -bottom-2 bg-black text-white rounded-full px-1 text-xs outfit-font">
               {cartProducts.length}
             </span>
