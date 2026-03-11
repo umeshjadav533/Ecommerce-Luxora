@@ -6,46 +6,51 @@ import mongoose from "mongoose";
 // ----------------- GET ALL PRODUCTS AND FILTERED PRODUCTS -----------------
 export const getAllProducts = asyncHandler(async (req, res, next) => {
   const user = req.user;
+
   if (!user) {
     return next(new ErrorHandler("User not authenticated", 401));
   }
 
-  const { limit, query = "" } = req.query;
+  const page = parseInt(req.query.page) || 1;
+  const query = req.query.query?.trim();
 
   let filter = {};
+  let limit = 50; // default home page products
 
-  if (query.trim() !== "") {
-    const search = query.trim();
-
+  if (query) {
     filter = {
       $or: [
-        { title: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-        { brand: { $regex: search, $options: "i" } },
-        { tags: { $regex: search, $options: "i" } },
-
-        // exact match for category
-        { category: { $regex: `^${search}$`, $options: "i" } },
-
-        // exact match for subCategory
-        { subCategory: { $regex: `^${search}$`, $options: "i" } },
+        { title: { $regex: query, $options: "i" } },
+        { description: { $regex: query, $options: "i" } },
+        { brand: { $regex: query, $options: "i" } },
+        { tags: { $regex: query, $options: "i" } },
+        { category: { $regex: `^${query}$`, $options: "i" } },
+        { subCategory: { $regex: `^${query}$`, $options: "i" } },
       ],
     };
+
+    limit = parseInt(req.query.limit) || 50; // search me pagination
   }
 
-  let productQuery = Product.find(filter).sort({ createdAt: -1 });
-
-  // apply limit only if valid
-  if (limit && !isNaN(limit)) {
-    productQuery = productQuery.limit(Number(limit));
-  }
-
-  const products = await productQuery;
+  const products = await Product.paginate(filter, {
+    page,
+    limit,
+    sort: { createdAt: -1 },
+  });
 
   res.status(200).json({
     success: true,
-    totalProducts: products.length,
-    products,
+    products: products.docs,
+    meta: {
+      totalDocs: products.totalDocs,
+      limit: products.limit,
+      totalPages: products.totalPages,
+      currentPage: products.page,
+      hasPrevPage: products.hasPrevPage,
+      hasNextPage: products.hasNextPage,
+      prevPage: products.prevPage,
+      nextPage: products.nextPage,
+    },
   });
 });
 
@@ -83,61 +88,105 @@ export const getProductById = asyncHandler(async (req, res, next) => {
 // ----------------- GET PRODUCT BY CATEGORY -----------------
 export const getProductsForCategoryPage = asyncHandler(
   async (req, res, next) => {
-    // 1. take user from middleware if user not authenticated then throe error
+
+    // 1. check user
     const user = req.user;
     if (!user) {
       return next(new ErrorHandler("User not authenticated", 401));
     }
 
-    // 2. take category from req.params
+    // 2. get category
     const { category } = req.params;
 
-    // 3. if category not available then throw error
-    if (!category || category.trim() === "")
+    if (!category || category.trim() === "") {
       return next(new ErrorHandler("Category is required", 400));
+    }
 
-    // 4. get product with category
-    const products = await Product.find({ category: category.toLowerCase() });
+    // 3. pagination params
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
 
-    // 5. if product not found or product length === 0
-    if (!products || products.length === 0) {
+    // 4. filter
+    const filter = {
+      category: category.toLowerCase(),
+    };
+
+    // 5. paginate
+    const products = await Product.paginate(filter, {
+      page,
+      limit,
+      sort: { createdAt: -1 },
+    });
+
+    // 6. if no product
+    if (!products.docs || products.docs.length === 0) {
       return next(new ErrorHandler("No products found in this category", 404));
     }
 
-    // 6. if products found then send response
+    // 7. response
     res.status(200).json({
       success: true,
-      products,
+      products: products.docs,
+      meta: {
+        totalDocs: products.totalDocs,
+        limit: products.limit,
+        totalPages: products.totalPages,
+        currentPage: products.page,
+        hasPrevPage: products.hasPrevPage,
+        hasNextPage: products.hasNextPage,
+        prevPage: products.prevPage,
+        nextPage: products.nextPage,
+      },
     });
-  },
+  }
 );
 
 // ----------------- GET PRODUCTS BY TAG -----------------
 export const getProductsByTag = asyncHandler(async (req, res, next) => {
   const user = req.user;
+
   if (!user) {
     return next(new ErrorHandler("User not authenticated", 401));
   }
 
   const { tag, category } = req.body;
 
-  let query = { tags: tag };
-  if (category) {
-    query.category = category;
-  }
-
-  if (!tag?.trim() === "") {
+  if (!tag || tag.trim() === "") {
     return next(new ErrorHandler("Tag is required", 400));
   }
 
-  const products = await Product.find(query).sort({ createdAt: -1 }).limit(8);
+  // pagination
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 50;
 
-  if (!products || products.length === 0) {
+  let filter = { tags: tag.toLowerCase() };
+
+  if (category) {
+    filter.category = category.toLowerCase();
+  }
+
+  const products = await Product.paginate(filter, {
+    page,
+    limit,
+    sort: { createdAt: -1 },
+  });
+
+  if (!products.docs || products.docs.length === 0) {
     return next(new ErrorHandler("Products not found", 404));
   }
 
   res.status(200).json({
     success: true,
-    products,
+    products: products.docs,
+    meta: {
+      totalDocs: products.totalDocs,
+      limit: products.limit,
+      totalPages: products.totalPages,
+      currentPage: products.page,
+      hasPrevPage: products.hasPrevPage,
+      hasNextPage: products.hasNextPage,
+      prevPage: products.prevPage,
+      nextPage: products.nextPage,
+    },
   });
 });

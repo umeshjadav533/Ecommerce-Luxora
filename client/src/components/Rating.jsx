@@ -1,5 +1,4 @@
 import { Star } from "lucide-react";
-import React from "react";
 
 const Rating = ({ rating = 0, reviews = [] }) => {
   const fullStars = Math.floor(rating);

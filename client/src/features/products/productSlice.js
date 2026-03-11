@@ -8,18 +8,54 @@ import {
 } from "./productAPI.js";
 
 const initialState = {
-  products: [],
-  singleProduct: null,
-  relatedProducts: [],
-  categoryProducts: [],
-  tagProducts: [],
+  productsData: {
+    products: [],
+    meta: {
+      totalDocs: 0,
+      limit: 5,
+      totalPages: 0,
+      currentPage: 1,
+      hasPrevPage: false,
+      hasNextPage: false,
+      prevPage: null,
+      nextPage: null,
+    },
+    loading: false,
+  },
 
-  loading: {
-    productsLoading: false,
-    singleProductLoading: false,
-    relatedProductLoading: false,
-    categoryProductsLoading: false,
-    tagProductsLoading: false
+  productData: {
+    product: null,
+    loading: false,
+  },
+
+  categoryPageData: {
+    categoryProducts: [],
+    meta: {
+      totalDocs: 0,
+      limit: 5,
+      totalPages: 0,
+      currentPage: 1,
+      hasPrevPage: false,
+      hasNextPage: false,
+      prevPage: null,
+      nextPage: null,
+    },
+    loading: false,
+  },
+
+  tagProductsData: {
+    products: [],
+    meta: {
+      totalDocs: 0,
+      limit: 5,
+      totalPages: 0,
+      currentPage: 1,
+      hasPrevPage: false,
+      hasNextPage: false,
+      prevPage: null,
+      nextPage: null,
+    },
+    loading: false,
   },
 
   error: null,
@@ -33,73 +69,75 @@ const productSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      // ALL PRODUCTS
+      // ================= ALL PRODUCTS =================
       .addCase(getAllProductsAsyncThunk.pending, (state) => {
-        state.loading.productsLoading = true;
+        state.productsData.loading = true;
       })
       .addCase(getAllProductsAsyncThunk.fulfilled, (state, action) => {
-        state.loading.productsLoading = false;
-        state.products = action.payload.products;
+        state.productsData.loading = false;
+        state.productsData.products = action.payload.products;
+        state.productsData.meta = action.payload.meta;
       })
       .addCase(getAllProductsAsyncThunk.rejected, (state, action) => {
-        state.loading.productsLoading = false;
-        state.products = [];
+        state.productsData.loading = false;
         state.error = action.error.message;
       })
 
-      // SINGLE PRODUCT
+      // ================= SINGLE PRODUCT =================
       .addCase(getSingleProductAsyncThunk.pending, (state) => {
-        state.loading.singleProductLoading = true;
+        state.productData.loading = true;
       })
       .addCase(getSingleProductAsyncThunk.fulfilled, (state, action) => {
-        state.loading.singleProductLoading = false;
-        state.singleProduct = action.payload.product;
+        state.productData.loading = false;
+        state.productData.product = action.payload.product;
       })
       .addCase(getSingleProductAsyncThunk.rejected, (state, action) => {
-        state.loading.singleProductLoading = false;
-        state.singleProduct = [];
+        state.productData.loading = false;
+        state.productData.product = null;
         state.error = action.error.message;
       })
 
-      // RELATED PRODUCTS
-      .addCase(getRelatedProductsAsyncThunk.pending, (state) => {
-        state.loading.relatedProductLoading = true;
-      })
-      .addCase(getRelatedProductsAsyncThunk.fulfilled, (state, action) => {
-        state.loading.relatedProductLoading = false;
-        state.relatedProducts = action.payload.product;
-      })
-      .addCase(getRelatedProductsAsyncThunk.rejected, (state, action) => {
-        state.loading.relatedProductLoading = false;
-        state.relatedProducts = [];
-        state.error = action.error.message;
-      })
+      // // ================= RELATED PRODUCTS =================
+      // .addCase(getRelatedProductsAsyncThunk.pending, (state) => {
+      //   state.relatedProducts.loading = true;
+      // })
+      // .addCase(getRelatedProductsAsyncThunk.fulfilled, (state, action) => {
+      //   state.relatedProducts.loading = false;
+      //   state.relatedProducts.products = action.payload.products;
+      // })
+      // .addCase(getRelatedProductsAsyncThunk.rejected, (state, action) => {
+      //   state.relatedProducts.loading = false;
+      //   state.relatedProducts.products = [];
+      //   state.error = action.error.message;
+      // })
 
-      // CATEGORY PRODUCTS
+      // ================= CATEGORY PRODUCTS =================
       .addCase(categoryPageProductAsyncThunk.pending, (state) => {
-        state.loading.categoryProductsLoading = true;
+        state.categoryPageData.loading = true;
       })
       .addCase(categoryPageProductAsyncThunk.fulfilled, (state, action) => {
-        state.loading.categoryProductsLoading = false;
-        state.categoryProducts = action.payload;
+        state.categoryPageData.loading = false;
+        state.categoryPageData.categoryProducts = action.payload.products;
+        state.categoryPageData.meta = action.payload.meta;
       })
       .addCase(categoryPageProductAsyncThunk.rejected, (state, action) => {
-        state.loading.categoryProductsLoading = false;
-        state.categoryProducts = [];
+        state.categoryPageData.loading = false;
+        state.categoryPageData.categoryProducts = [];
         state.error = action.error.message;
       })
 
-      // TAG PRODUCTS
+      // ================= TAG PRODUCTS =================
       .addCase(getTagProductAsyncThunk.pending, (state) => {
-        state.loading.tagProductsLoading = true;
+        state.tagProductsData.loading = true;
       })
       .addCase(getTagProductAsyncThunk.fulfilled, (state, action) => {
-        state.loading.tagProductsLoading = false;
-        state.tagProducts = action.payload.products;
+        state.tagProductsData.loading = false;
+        state.tagProductsData.products = action.payload.products;
+        state.tagProductsData.meta = action.payload.meta;
       })
       .addCase(getTagProductAsyncThunk.rejected, (state, action) => {
-        state.loading.tagProductsLoading = false;
-        state.tagProducts = [];
+        state.tagProductsData.loading = false;
+        state.tagProductsData.products = [];
         state.error = action.error.message;
       });
   },

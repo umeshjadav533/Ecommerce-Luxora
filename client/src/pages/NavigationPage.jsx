@@ -7,13 +7,21 @@ import ProductCard from "../components/ProductCard";
 export default function NavigationPage() {
   const dispatch = useDispatch();
   const { pageName } = useParams();
-  const products = useSelector((state) => state.product.products);
+  const { products, meta } = useSelector((state) => state.product.productsData);
+  const {
+    totalPages = 0,
+    currentPage = 1,
+    hasPrevPage = false,
+    hasNextPage = false,
+    prevPage = null,
+    nextPage = null,
+  } = meta || {};
 
   useEffect(() => {
     dispatch(
       getAllProductsAsyncThunk({
-        limit: 50,
         query: pageName.toLowerCase(),
+        limit: 8,
       }),
     );
   }, [dispatch, pageName]);
@@ -36,6 +44,75 @@ export default function NavigationPage() {
           <ProductCard product={product} key={product._id} />
         ))}
       </div>
+
+      {/* PAGINATION */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-10">
+          <ul className="flex items-center gap-2">
+            {/* PREV */}
+            <li>
+              <button
+                disabled={!hasPrevPage}
+                onClick={() =>
+                  dispatch(
+                    getAllProductsAsyncThunk({
+                      query: pageName.toLowerCase(),
+                      page: prevPage,
+                      limit: 8,
+                    }),
+                  )
+                }
+                className={`px-4 py-2 bg-black text-white rounded-md transition ${hasPrevPage ? "hover:opacity-25" : "opacity-40 cursor-not-allowed"}`}
+              >
+                Prev
+              </button>
+            </li>
+
+            {/* PAGE NUMBERS */}
+            {Array.from({ length: totalPages }, (_, i) => {
+              const page = i + 1;
+
+              return (
+                <li key={page}>
+                  <button
+                    onClick={() =>
+                      dispatch(
+                        getAllProductsAsyncThunk({
+                          query: pageName.toLowerCase(),
+                          page,
+                          limit: 5,
+                        }),
+                      )
+                    }
+                    className={`px-4 py-2 bg-[#E0DACF] rounded-md cursor-pointer transition ${currentPage === page ? "bg-black text-white border-none" : "hover:opacity-60"}`}
+                  >
+                    {page}
+                  </button>
+                </li>
+              );
+            })}
+
+            {/* NEXT */}
+            <li>
+              <button
+                disabled={!hasNextPage}
+                onClick={() =>
+                  dispatch(
+                    getAllProductsAsyncThunk({
+                      query: pageName.toLowerCase(),
+                      page: nextPage,
+                      limit: 8,
+                    }),
+                  )
+                }
+                className={`px-4 py-2 bg-black  text-white rounded-md transition ${hasNextPage ? "hover:opacity-25" : "opacity-40 cursor-not-allowed"}`}
+              >
+                Next
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

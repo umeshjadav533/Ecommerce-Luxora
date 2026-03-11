@@ -3,7 +3,7 @@ import createApiThunk from "../../utils/createAsyncThunkHelper.js";
 export const getAllProductsAsyncThunk = createApiThunk(
   "products",
   "get",
-  (data) => `/product?limit=${data.limit}&query=${data.query}`
+  (data) => `/product?page=${data.page}&limit=${data.limit}&query=${data.query}`
 );
 
 export const getSingleProductAsyncThunk = createApiThunk(

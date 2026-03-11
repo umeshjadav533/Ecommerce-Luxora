@@ -1,10 +1,20 @@
 import { Link } from "react-router-dom";
-import { getCartProductsAsyncThunk, getcartSummaryAsyncThunk, removeCartProductAsyncThunk, updateCartProductAsyncThunk } from "../features/cart/cartAPI";
+import {
+  getCartProductsAsyncThunk,
+  getcartSummaryAsyncThunk,
+  removeCartProductAsyncThunk,
+  updateCartProductAsyncThunk,
+} from "../features/cart/cartAPI";
 import { IdCard, Minus, Plus, Trash } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 export default function CartProductCard({ product }) {
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
+  const updateQuantityLoading = useSelector(
+    (state) => state.cart.updateProductLoading,
+  );
+
   return (
     <div className="w-full grid grid-cols-4 gap-4 p-4 border-b border-gray-200 transition duration-200">
       {/* Image */}
@@ -51,26 +61,27 @@ export default function CartProductCard({ product }) {
                 variant: product?.variant || null,
               }),
             ).then(() => {
-              dispatch(getcartSummaryAsyncThunk())
+              dispatch(getcartSummaryAsyncThunk());
             })
           }
         >
-          <Trash size={20}/>
+          <Trash size={20} />
         </button>
 
         <div className="grid grid-cols-3 border border-gray-300 rounded-full overflow-hidden shadow-sm">
           <button
+            disabled={updateQuantityLoading}
             className="px-2 hover:bg-gray-200 transition text-center"
             onClick={() =>
               dispatch(
                 updateCartProductAsyncThunk({
-                id: product.productId,
-                size: product?.size || null,
-                variant: product?.variant || null,
-                type: "decrement",
-              })
+                  id: product.productId,
+                  size: product?.size || null,
+                  variant: product?.variant || null,
+                  type: "decrement",
+                }),
               ).then(() => {
-                dispatch(getcartSummaryAsyncThunk())
+                dispatch(getcartSummaryAsyncThunk());
               })
             }
           >
@@ -78,23 +89,29 @@ export default function CartProductCard({ product }) {
           </button>
 
           <div className="px-2 text-center text-sm font-medium outfit-font">
+            {updateQuantityLoading && (
+              <span className="animate-spin inline-block w-2 h-2 border border-t-transparent rounded-full"></span>
+            )}
             {product.quantity}
           </div>
 
           <button
-            className="px-2 hover:bg-gray-200 transition"
-            onClick={() =>
+            disabled={product.quantity >= product.stock}
+            className="px-2 hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => {
+              if (product.quantity >= product.stock) return;
+
               dispatch(
                 updateCartProductAsyncThunk({
-                id: product.productId,
-                size: product?.size || null,
-                variant: product?.variant || null,
-                type: "increment",
-              })
+                  id: product.productId,
+                  size: product?.size || null,
+                  variant: product?.variant || null,
+                  type: "increment",
+                }),
               ).then(() => {
-                dispatch(getcartSummaryAsyncThunk())
-              })
-            }
+                dispatch(getcartSummaryAsyncThunk());
+              });
+            }}
           >
             <Plus size={14} className="m-auto" />
           </button>

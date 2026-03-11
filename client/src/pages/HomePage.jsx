@@ -8,20 +8,23 @@ import BestSeller from "../components/BestSeller";
 import { getAllProductsAsyncThunk } from "../features/products/productAPI";
 import ProductCard from "../components/ProductCard";
 import ProductSlider from "../components/ProductSlider";
+import { getCartProductsAsyncThunk } from "../features/cart/cartAPI";
 
 export default function HomePage() {
   const { categoryProductList } = useSelector((state) => state.category);
-  const { products } = useSelector((state) => state.product);
+  const { products } = useSelector((state) => state.product.productsData);
+  
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(categoryListAsyncThunk());
     dispatch(getAllProductsAsyncThunk({ query: "" }));
+    dispatch(getCartProductsAsyncThunk());
   }, [dispatch]);
-
+  
   return (
     <div className="p-3">
       <HeroSection />
-      <ul className="grid grid-cols-4 gap-5 my-5">
+      <ul className="grid grid-cols-4 gap-3 my-5">
         {categoryProductList &&
           categoryProductList.length > 1 &&
           categoryProductList?.slice(0, 8)?.map((item, index) => (

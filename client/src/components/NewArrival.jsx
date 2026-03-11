@@ -13,7 +13,7 @@ export default function NewArrival() {
   useEffect(() => {
     dispatch(getTagProductAsyncThunk({ tag: "new-arrival" }));
   }, [dispatch]);
-  const { tagProducts } = useSelector((state) => state.product);
+  const { products } = useSelector((state) => state.product.tagProductsData);
 
   return (
     <div className="my-10">
@@ -25,9 +25,9 @@ export default function NewArrival() {
       >
         New Arrival
       </h3>
-      {tagProducts && tagProducts.length > 1 && (
+      {products && products.length > 1 && (
         <Slider
-          data={tagProducts}
+          data={products}
           renderItem={(product) => (
             <div className="flex flex-col justify-center items-center gap-5">
               <div className="flex flex-col justify-center items-center w-100 h-100">

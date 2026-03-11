@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import calculatePrice from "../utils/priceUtil.js";
 import LikedButton from "./LikedButton.jsx";
+import Rating from "./Rating.jsx";
 
 export default function ProductCard({ product }) {
   return (
-    <div className="h-120 bg-white rounded-2xl flex flex-col justify-between items-center gap-2 p-2 overflow-hidden">
+    <div className="h-120 bg-white rounded-2xl flex flex-col justify-between items-center p-2 overflow-hidden">
       <div className="w-full h-100 overflow-hidden relative">
         <Link to={`/product/${product._id}`}>
           <img
@@ -28,9 +29,10 @@ export default function ProductCard({ product }) {
           />
         </div>
       </div>
-      <div className="w-full h-25 overflow-hidden flex flex-col justify-end gap-1">
+      <div className="w-full h-20 overflow-hidden flex flex-col justify-end gap-1">
         <p className="truncate-title text-sm text-gray-900">{product.title}</p>
-        <div className="flex gap-2">
+        <div className="flex justify-between">
+          <div className="flex gap-2">
           <span className="text-2xl">
             $
             {calculatePrice(
@@ -42,6 +44,9 @@ export default function ProductCard({ product }) {
             ${product?.variants[0]?.mrpPrice}
           </span>
         </div>
+        <div><Rating rating={product.rating} /></div>
+        </div>
+
       </div>
     </div>
   );
