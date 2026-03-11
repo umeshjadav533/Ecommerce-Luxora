@@ -157,7 +157,7 @@ export const updateCartProduct = asyncHandler(async (req, res, next) => {
   }
 
   const stock = selectedSize.stock || selectedVariant.stock || 0;
-
+  console.log(stock);
   // 8. increment
   if (type.toLowerCase() === "increment") {
     if (cartItem.quantity + 1 > stock) {
@@ -192,6 +192,7 @@ export const updateCartProduct = asyncHandler(async (req, res, next) => {
   // 12. response
   res.status(200).json({
     success: true,
+    totalStock: stock,
     cart: formatResponse(updatedUser.cart),
   });
 });

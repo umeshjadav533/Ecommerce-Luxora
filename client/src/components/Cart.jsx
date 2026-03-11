@@ -76,8 +76,8 @@ const Cart = () => {
               </Link>
             </div>
           ) : (
-            cartProducts.map((product) => (
-              <CartProductCard product={product} key={product.productId} />
+            cartProducts.map((product, index) => (
+              <CartProductCard product={product} key={index} />
             ))
           )}
         </div>
