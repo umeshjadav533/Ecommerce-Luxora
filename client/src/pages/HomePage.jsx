@@ -13,14 +13,18 @@ import { getCartProductsAsyncThunk } from "../features/cart/cartAPI";
 export default function HomePage() {
   const { categoryProductList } = useSelector((state) => state.category);
   const { products } = useSelector((state) => state.product.productsData);
-  
+
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(categoryListAsyncThunk());
-    dispatch(getAllProductsAsyncThunk({ query: "" }));
+    dispatch(
+      getAllProductsAsyncThunk({
+        page: 1
+      }),
+    );
     dispatch(getCartProductsAsyncThunk());
   }, [dispatch]);
-  
+
   return (
     <div className="p-3">
       <HeroSection />

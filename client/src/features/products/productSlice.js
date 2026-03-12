@@ -5,10 +5,26 @@ import {
   categoryPageProductAsyncThunk,
   getTagProductAsyncThunk,
   getRelatedProductsAsyncThunk,
+  getFilteredProductAsyncThunk,
 } from "./productAPI.js";
 
 const initialState = {
   productsData: {
+    products: [],
+    meta: {
+      totalDocs: 0,
+      limit: 5,
+      totalPages: 0,
+      currentPage: 1,
+      hasPrevPage: false,
+      hasNextPage: false,
+      prevPage: null,
+      nextPage: null,
+    },
+    loading: false,
+  },
+
+  filteredProductsData: {
     products: [],
     meta: {
       totalDocs: 0,
@@ -83,6 +99,21 @@ const productSlice = createSlice({
         state.error = action.error.message;
       })
 
+      // ================= FILTERED PRODUCTS =================
+      .addCase(getFilteredProductAsyncThunk.pending, (state) => {
+        state.filteredProductsData.loading = true;
+      })
+      .addCase(getFilteredProductAsyncThunk.fulfilled, (state, action) => {
+        state.filteredProductsData.loading = false;
+        state.filteredProductsData.products = action.payload.products;
+        state.filteredProductsData.meta = action.payload.meta; 
+      })
+      .addCase(getFilteredProductAsyncThunk.rejected, (state, action) => {
+        state.filteredProductsData.loading = false;
+        state.filteredProductsData.products = [];
+        state.error = action.error.message;
+      })
+
       // ================= SINGLE PRODUCT =================
       .addCase(getSingleProductAsyncThunk.pending, (state) => {
         state.productData.loading = true;
@@ -96,20 +127,6 @@ const productSlice = createSlice({
         state.productData.product = null;
         state.error = action.error.message;
       })
-
-      // // ================= RELATED PRODUCTS =================
-      // .addCase(getRelatedProductsAsyncThunk.pending, (state) => {
-      //   state.relatedProducts.loading = true;
-      // })
-      // .addCase(getRelatedProductsAsyncThunk.fulfilled, (state, action) => {
-      //   state.relatedProducts.loading = false;
-      //   state.relatedProducts.products = action.payload.products;
-      // })
-      // .addCase(getRelatedProductsAsyncThunk.rejected, (state, action) => {
-      //   state.relatedProducts.loading = false;
-      //   state.relatedProducts.products = [];
-      //   state.error = action.error.message;
-      // })
 
       // ================= CATEGORY PRODUCTS =================
       .addCase(categoryPageProductAsyncThunk.pending, (state) => {

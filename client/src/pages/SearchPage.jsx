@@ -1,12 +1,34 @@
 import { Search } from "lucide-react";
-import ProductCard from "../components/ProductCard";
-import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
-import { getAllProductsAsyncThunk } from "../features/products/productAPI";
-import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  getAllProductsAsyncThunk,
+  getFilteredProductAsyncThunk,
+} from "../features/products/productAPI";
+import ProductCard from "../components/ProductCard";
 
 export default function SearchPage() {
-  const { products, meta } = useSelector((state) => state.product.productsData);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const { register, handleSubmit } = useForm();
+
+  const { products: filteredProducts, meta: filteredMeta } = useSelector(
+    (state) => state.product.filteredProductsData,
+  );
+  const { products: allProducts, meta: allMeta } = useSelector(
+    (state) => state.product.productsData,
+  );
+
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const isSearching = searchQuery && searchQuery.trim() !== "";
+  const productsToShow = isSearching ? filteredProducts : allProducts;
+  const metaToUse = isSearching ? filteredMeta : allMeta;
+
   const {
     totalPages = 0,
     currentPage = 1,
@@ -14,38 +36,81 @@ export default function SearchPage() {
     hasNextPage = false,
     prevPage = null,
     nextPage = null,
-  } = meta || {};
-  const { register, handleSubmit } = useForm();
-  const dispatch = useDispatch();
+  } = metaToUse || {};
 
-  // Page load par 5 products
+  // On mount, read query from URL
   useEffect(() => {
-    dispatch(
-      getAllProductsAsyncThunk({
-        query: "",
-        page: 1,
-        limit: 8,
-      }),
-    );
-  }, [dispatch]);
+    const params = new URLSearchParams(location.search);
+    const query = params.get("query") || "";
 
-  // Search submit
-  const submitForm = async (data) => {
-    try {
+    setSearchQuery(query);
+
+    if (query.trim() !== "") {
       dispatch(
-        getAllProductsAsyncThunk({
-          query: data.query,
+        getFilteredProductAsyncThunk({
+          query,
           page: 1,
           limit: 8,
         }),
       );
-    } catch (error) {
-      console.log(error);
+    } else {
+      dispatch(
+        getAllProductsAsyncThunk({
+          page: 1,
+          limit: 8,
+        }),
+      );
+    }
+  }, [location.search, dispatch]);
+
+  // Form submit
+  const submitForm = (data) => {
+    const query = data.query.trim();
+    setSearchQuery(query);
+
+    navigate(query ? `/search?query=${encodeURIComponent(query)}` : `/search`);
+
+    if (query) {
+      dispatch(
+        getFilteredProductAsyncThunk({
+          query,
+          page: 1,
+          limit: 8,
+        }),
+      );
+    } else {
+      dispatch(
+        getAllProductsAsyncThunk({
+          page: 1,
+          limit: 8,
+        }),
+      );
+    }
+  };
+
+  // Pagination handler
+  const changePage = (page) => {
+    if (isSearching) {
+      dispatch(
+        getFilteredProductAsyncThunk({
+          query: searchQuery,
+          page,
+          limit: 8,
+        }),
+      );
+    } else {
+      dispatch(
+        getAllProductsAsyncThunk({
+          page,
+          limit: 8,
+        }),
+      );
     }
   };
 
   return (
-    <div className="w-full p-3">
+    <div className="p-3">
+      {/* Search bar */}
       <div className="h-[30vh] flex justify-center items-end p-5">
         <form
           onSubmit={handleSubmit(submitForm)}
@@ -57,59 +122,56 @@ export default function SearchPage() {
             className="outline-none w-100 py-2 px-2"
             {...register("query")}
           />
-
           <button type="submit" className="cursor-pointer">
             <Search size={20} />
           </button>
         </form>
       </div>
 
-      <div className="grid grid-cols-4 gap-3">
-        {products?.map((product) => (
-          <ProductCard product={product} key={product._id} />
-        ))}
+      {/* Products grid */}
+      <div className="grid grid-cols-4 gap-6">
+        {productsToShow.length > 0 ? (
+          productsToShow.map((product) => (
+            <ProductCard key={product._id} product={product} />
+          ))
+        ) : (
+          <p className="col-span-4 text-center text-gray-500">
+            No products found.
+          </p>
+        )}
       </div>
 
-      {/* PAGINATION */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center mt-10">
           <ul className="flex items-center gap-2">
-            {/* PREV */}
+            {/* Prev */}
             <li>
               <button
                 disabled={!hasPrevPage}
-                onClick={() =>
-                  dispatch(
-                    getAllProductsAsyncThunk({
-                      query: pageName.toLowerCase(),
-                      page: prevPage,
-                      limit: 8,
-                    }),
-                  )
-                }
-                className={`px-4 py-2 bg-black text-white rounded-md transition ${hasPrevPage ? "hover:opacity-25" : "opacity-40 cursor-not-allowed"}`}
+                onClick={() => changePage(prevPage)}
+                className={`px-4 py-2 rounded-md text-white ${
+                  hasPrevPage
+                    ? "bg-black hover:opacity-70"
+                    : "bg-gray-400 cursor-not-allowed"
+                }`}
               >
                 Prev
               </button>
             </li>
 
-            {/* PAGE NUMBERS */}
+            {/* Page numbers */}
             {Array.from({ length: totalPages }, (_, i) => {
               const page = i + 1;
-
               return (
                 <li key={page}>
                   <button
-                    onClick={() =>
-                      dispatch(
-                        getAllProductsAsyncThunk({
-                          query: pageName.toLowerCase(),
-                          page,
-                          limit: 5,
-                        }),
-                      )
-                    }
-                    className={`px-4 py-2 bg-[#E0DACF] rounded-md cursor-pointer transition ${currentPage === page ? "bg-black text-white border-none" : "hover:opacity-60"}`}
+                    onClick={() => changePage(page)}
+                    className={`px-4 py-2 rounded-md ${
+                      currentPage === page
+                        ? "bg-black text-white"
+                        : "bg-[#E0DACF] hover:opacity-60"
+                    }`}
                   >
                     {page}
                   </button>
@@ -117,20 +179,16 @@ export default function SearchPage() {
               );
             })}
 
-            {/* NEXT */}
+            {/* Next */}
             <li>
               <button
                 disabled={!hasNextPage}
-                onClick={() =>
-                  dispatch(
-                    getAllProductsAsyncThunk({
-                      query: pageName.toLowerCase(),
-                      page: nextPage,
-                      limit: 8,
-                    }),
-                  )
-                }
-                className={`px-4 py-2 bg-black  text-white rounded-md transition ${hasNextPage ? "hover:opacity-25" : "opacity-40 cursor-not-allowed"}`}
+                onClick={() => changePage(nextPage)}
+                className={`px-4 py-2 rounded-md text-white ${
+                  hasNextPage
+                    ? "bg-black hover:opacity-70"
+                    : "bg-gray-400 cursor-not-allowed"
+                }`}
               >
                 Next
               </button>
