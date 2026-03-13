@@ -3,39 +3,51 @@ import createApiThunk from "../../utils/createAsyncThunkHelper.js";
 export const getAllProductsAsyncThunk = createApiThunk(
   "products",
   "get",
-  (data) => `/product?page=${data.page}&limit=${data.limit}`
+  (data) => `/product?page=${data.page}&limit=${data.limit}`,
 );
 
 export const getSingleProductAsyncThunk = createApiThunk(
-    "singleProduct",
-    "get",
-    (data) => `/product/${data.id}`
-)
+  "singleProduct",
+  "get",
+  (data) => `/product/${data.id}`,
+);
 
 export const getRelatedProductsAsyncThunk = createApiThunk(
-    "related-products",
-    "get",
-    (data) => `/product/${data.id}?limit=${data.limit}`
-)
-
+  "related-products",
+  "get",
+  (data) => `/product/${data.id}?limit=${data.limit}`,
+);
 
 export const categoryPageProductAsyncThunk = createApiThunk(
-    "category-page",
-    "get",
-    (data) => `/product/category-page/${data.category}`
-)
+  "category-page",
+  "get",
+  (data) => `/product/category-page/${data.category}`,
+);
 
 export const getTagProductAsyncThunk = createApiThunk(
   "tag-product",
   "post",
-  "/product/tag"
+  "/product/tag",
 );
 
-export const getFilteredProductAsyncThunk = createApiThunk(
-  "filter-products",
+export const getSearchProductAsyncThunk = createApiThunk(
+  "search-products",
   "get",
   (params) => {
-    const query = new URLSearchParams(params).toString();
-    return `/product/filter?${query}`;
-  }
+    const filteredParams = Object.fromEntries(
+      Object.entries(params).filter(
+        ([_, value]) => value !== undefined && value !== null && value !== "",
+      ),
+    );
+
+    const query = new URLSearchParams(filteredParams).toString();
+
+    return `/product/search?${query}`;
+  },
+);
+
+export const getSearchProductsFilterAsyncThunk = createApiThunk(
+  "filter-options",
+  "get",
+  "/product/search-filter",
 );

@@ -8,7 +8,10 @@ export const getAllProducts = asyncHandler(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 50;
 
-  const products = await Product.paginate({}, { page, limit, sort: { createdAt: -1 } });
+  const products = await Product.paginate(
+    {},
+    { page, limit, sort: { createdAt: -1 } },
+  );
 
   res.status(200).json({
     success: true,
@@ -32,7 +35,8 @@ export const getProductById = asyncHandler(async (req, res, next) => {
   if (!user) return next(new ErrorHandler("User not authenticated", 401));
 
   const { id } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(id)) return next(new ErrorHandler("Invalid product id", 400));
+  if (!mongoose.Types.ObjectId.isValid(id))
+    return next(new ErrorHandler("Invalid product id", 400));
 
   const product = await Product.findById(id);
   if (!product) return next(new ErrorHandler("Product not found", 404));
@@ -41,35 +45,42 @@ export const getProductById = asyncHandler(async (req, res, next) => {
 });
 
 // ----------------- GET PRODUCTS BY CATEGORY -----------------
-export const getProductsForCategoryPage = asyncHandler(async (req, res, next) => {
-  const user = req.user;
-  if (!user) return next(new ErrorHandler("User not authenticated", 401));
+export const getProductsForCategoryPage = asyncHandler(
+  async (req, res, next) => {
+    const user = req.user;
+    if (!user) return next(new ErrorHandler("User not authenticated", 401));
 
-  const { category } = req.params;
-  if (!category || category.trim() === "") return next(new ErrorHandler("Category is required", 400));
+    const { category } = req.params;
+    if (!category || category.trim() === "")
+      return next(new ErrorHandler("Category is required", 400));
 
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 50;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
 
-  const products = await Product.paginate({ category: category.toLowerCase() }, { page, limit, sort: { createdAt: -1 } });
+    const products = await Product.paginate(
+      { category: category.toLowerCase() },
+      { page, limit, sort: { createdAt: -1 } },
+    );
 
-  if (!products.docs || products.docs.length === 0) return next(new ErrorHandler("No products found in this category", 404));
+    if (!products.docs || products.docs.length === 0)
+      return next(new ErrorHandler("No products found in this category", 404));
 
-  res.status(200).json({
-    success: true,
-    products: products.docs,
-    meta: {
-      totalDocs: products.totalDocs,
-      limit: products.limit,
-      totalPages: products.totalPages,
-      currentPage: products.page,
-      hasPrevPage: products.hasPrevPage,
-      hasNextPage: products.hasNextPage,
-      prevPage: products.prevPage,
-      nextPage: products.nextPage,
-    },
-  });
-});
+    res.status(200).json({
+      success: true,
+      products: products.docs,
+      meta: {
+        totalDocs: products.totalDocs,
+        limit: products.limit,
+        totalPages: products.totalPages,
+        currentPage: products.page,
+        hasPrevPage: products.hasPrevPage,
+        hasNextPage: products.hasNextPage,
+        prevPage: products.prevPage,
+        nextPage: products.nextPage,
+      },
+    });
+  },
+);
 
 // ----------------- GET PRODUCTS BY TAG -----------------
 export const getProductsByTag = asyncHandler(async (req, res, next) => {
@@ -77,7 +88,8 @@ export const getProductsByTag = asyncHandler(async (req, res, next) => {
   if (!user) return next(new ErrorHandler("User not authenticated", 401));
 
   const { tag, category } = req.body;
-  if (!tag || tag.trim() === "") return next(new ErrorHandler("Tag is required", 400));
+  if (!tag || tag.trim() === "")
+    return next(new ErrorHandler("Tag is required", 400));
 
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 50;
@@ -85,9 +97,14 @@ export const getProductsByTag = asyncHandler(async (req, res, next) => {
   const filter = { tags: tag.toLowerCase() };
   if (category) filter.category = category.toLowerCase();
 
-  const products = await Product.paginate(filter, { page, limit, sort: { createdAt: -1 } });
+  const products = await Product.paginate(filter, {
+    page,
+    limit,
+    sort: { createdAt: -1 },
+  });
 
-  if (!products.docs || products.docs.length === 0) return next(new ErrorHandler("Products not found", 404));
+  if (!products.docs || products.docs.length === 0)
+    return next(new ErrorHandler("Products not found", 404));
 
   res.status(200).json({
     success: true,
@@ -106,43 +123,62 @@ export const getProductsByTag = asyncHandler(async (req, res, next) => {
 });
 
 // ----------------- FILTERED PRODUCTS -----------------
-export const filteredProducts = asyncHandler(async (req, res, next) => {
+export const searchProducts = asyncHandler(async (req, res, next) => {
+  if (!req.user) {
+    return next(new ErrorHandler("User is not authenticated", 401));
+  }
   const {
     query,
-    gender,
-    brands,
+    category,
+    subCategory,
+    brand,
+    tags,
     minPrice,
     maxPrice,
     rating,
-    discount,
-    tags,
     page = 1,
-    limit = 10,
+    limit = 20,
   } = req.query;
-
+  console.log(req.query);
   let filter = {};
 
-  if (query) filter.$or = [
-    { title: { $regex: query, $options: "i" } },
-    { description: { $regex: query, $options: "i" } },
-    { brand: { $regex: query, $options: "i" } },
-    { tags: { $regex: query, $options: "i" } },
-  ];
 
-  if (gender) filter.gender = gender;
-  if (brands) filter.brand = { $in: brands.split(",") };
-  if (tags) filter.tags = { $in: tags.split(",") };
-  if (minPrice || maxPrice) {
-    filter.mrpPrice = {};
-    if (minPrice) filter.mrpPrice.$gte = Number(minPrice);
-    if (maxPrice) filter.mrpPrice.$lte = Number(maxPrice);
+  if (query) {
+    filter.$or = [
+      { title: { $regex: query, $options: "i" } },
+      { description: { $regex: query, $options: "i" } },
+      { brand: { $regex: query, $options: "i" } },
+      { tags: { $regex: query, $options: "i" } },
+    ];
   }
-  if (rating) filter.rating = { $gte: Number(rating) };
-  if (discount) filter.discountPercentage = { $gte: Number(discount) };
+  
+  if (category) filter.category = category;
 
-  const products = await Product.paginate(filter, { page: Number(page), limit: Number(limit), sort: { createdAt: -1 } });
+  if (subCategory) filter.subCategory = subCategory;
 
-  if (!products.docs || products.docs.length === 0) return next(new ErrorHandler("Products not found", 404));
+  if (brand) {
+    filter.brand = { $in: brand.split(",") };
+  }
+
+  if (tags) {
+    filter.tags = { $in: tags.split(",") };
+  }
+
+  if (minPrice || maxPrice) {
+    filter["variants.mrpPrice"] = {};
+    if (minPrice) filter["variants.mrpPrice"].$gte = Number(minPrice);
+    if (maxPrice) filter["variants.mrpPrice"].$lte = Number(maxPrice);
+  }
+
+  if (rating) {
+    filter.rating = { $gte: Number(rating) };
+  }
+
+  const products = await Product.paginate(filter, {
+    page: Number(page),
+    limit: Number(limit),
+    sort: { createdAt: -1 },
+  });
 
   res.status(200).json({
     success: true,
@@ -157,5 +193,23 @@ export const filteredProducts = asyncHandler(async (req, res, next) => {
       prevPage: products.prevPage,
       nextPage: products.nextPage,
     },
+  });
+});
+
+export const getFilterOptions = asyncHandler(async (req, res, next) => {
+  if (!req.user) {
+    return next(new ErrorHandler("User is not authenticated", 401));
+  }
+  const brands = await Product.distinct("brand");
+  const categories = await Product.distinct("category");
+  const subCategories = await Product.distinct("subCategory");
+  const tags = await Product.distinct("tags");
+
+  res.json({
+    success: true,
+    brands,
+    categories,
+    subCategories,
+    tags
   });
 });

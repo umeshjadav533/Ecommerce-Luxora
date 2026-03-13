@@ -6,7 +6,11 @@ const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useSelector((state) => state.auth);
 
   if (loading.profile) {
-    return <h2>Loading...</h2>;
+    return(
+      <div className="flex justify-center items-center h-100vh w-full">
+        <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+      </div>
+    );
   }
 
   if (!isAuthenticated) {

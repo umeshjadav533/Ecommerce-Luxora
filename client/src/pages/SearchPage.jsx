@@ -5,9 +5,10 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   getAllProductsAsyncThunk,
-  getFilteredProductAsyncThunk,
+  getSearchProductAsyncThunk,
 } from "../features/products/productAPI";
 import ProductCard from "../components/ProductCard";
+import FilteredSection from "../components/FilteredSection";
 
 export default function SearchPage() {
   const dispatch = useDispatch();
@@ -16,18 +17,19 @@ export default function SearchPage() {
 
   const { register, handleSubmit } = useForm();
 
-  const { products: filteredProducts, meta: filteredMeta } = useSelector(
-    (state) => state.product.filteredProductsData,
+  const { products: searchProducts, meta: searchMeta } = useSelector(
+    (state) => state.product.searchProductsData
   );
+
   const { products: allProducts, meta: allMeta } = useSelector(
-    (state) => state.product.productsData,
+    (state) => state.product.productsData
   );
 
   const [searchQuery, setSearchQuery] = useState("");
 
   const isSearching = searchQuery && searchQuery.trim() !== "";
-  const productsToShow = isSearching ? filteredProducts : allProducts;
-  const metaToUse = isSearching ? filteredMeta : allMeta;
+  const productsToShow = isSearching ? searchProducts : allProducts;
+  const metaToUse = isSearching ? searchMeta : allMeta;
 
   const {
     totalPages = 0,
@@ -38,74 +40,62 @@ export default function SearchPage() {
     nextPage = null,
   } = metaToUse || {};
 
-  // On mount, read query from URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
+
     const query = params.get("query") || "";
+    const page = Number(params.get("page")) || 1;
+    const category = params.get("category");
+    const subCategory = params.get("subCategory");
+    const brand = params.get("brand");
+    const tags = params.get("tags");
 
     setSearchQuery(query);
 
-    if (query.trim() !== "") {
+    if (query || category || subCategory || brand || tags) {
       dispatch(
-        getFilteredProductAsyncThunk({
+        getSearchProductAsyncThunk({
           query,
-          page: 1,
-          limit: 8,
-        }),
+          category,
+          subCategory,
+          brand,
+          tags,
+          page,
+          limit: 9,
+        })
       );
     } else {
       dispatch(
         getAllProductsAsyncThunk({
-          page: 1,
-          limit: 8,
-        }),
+          page,
+          limit: 12,
+        })
       );
     }
   }, [location.search, dispatch]);
 
-  // Form submit
+  // Search submit
   const submitForm = (data) => {
     const query = data.query.trim();
-    setSearchQuery(query);
 
-    navigate(query ? `/search?query=${encodeURIComponent(query)}` : `/search`);
-
-    if (query) {
-      dispatch(
-        getFilteredProductAsyncThunk({
-          query,
-          page: 1,
-          limit: 8,
-        }),
-      );
-    } else {
-      dispatch(
-        getAllProductsAsyncThunk({
-          page: 1,
-          limit: 8,
-        }),
-      );
-    }
+    navigate(
+      query
+        ? `/search?query=${encodeURIComponent(query)}&page=1`
+        : `/search`
+    );
   };
 
-  // Pagination handler
+  // Pagination
   const changePage = (page) => {
-    if (isSearching) {
-      dispatch(
-        getFilteredProductAsyncThunk({
-          query: searchQuery,
-          page,
-          limit: 8,
-        }),
-      );
-    } else {
-      dispatch(
-        getAllProductsAsyncThunk({
-          page,
-          limit: 8,
-        }),
-      );
+    const params = new URLSearchParams(location.search);
+
+    if (searchQuery) {
+      params.set("query", searchQuery);
     }
+
+    params.set("page", page);
+
+    navigate(`/search?${params.toString()}`);
   };
 
   return (
@@ -122,23 +112,33 @@ export default function SearchPage() {
             className="outline-none w-100 py-2 px-2"
             {...register("query")}
           />
+
           <button type="submit" className="cursor-pointer">
             <Search size={20} />
           </button>
         </form>
       </div>
 
-      {/* Products grid */}
-      <div className="grid grid-cols-4 gap-6">
-        {productsToShow.length > 0 ? (
-          productsToShow.map((product) => (
-            <ProductCard key={product._id} product={product} />
-          ))
-        ) : (
-          <p className="col-span-4 text-center text-gray-500">
-            No products found.
-          </p>
+      {/* Products */}
+      <div className="grid grid-cols-4 gap-3">
+        {console.log(searchQuery)}
+        {searchQuery && (
+          <div className="col-span-1 h-full bg-white">
+            <FilteredSection />
+          </div>
         )}
+
+        <div className={`${searchQuery ? "col-span-3 grid-cols-3 grid-rows-3" : "col-span-full grid-cols-4"} grid  gap-3`}>
+          {productsToShow?.length > 0 ? (
+            productsToShow.map((product) => (
+              <ProductCard key={product._id} product={product} />
+            ))
+          ) : (
+            <p className="col-span-4 text-center text-gray-500">
+              No products found.
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Pagination */}
@@ -160,14 +160,14 @@ export default function SearchPage() {
               </button>
             </li>
 
-            {/* Page numbers */}
             {Array.from({ length: totalPages }, (_, i) => {
               const page = i + 1;
+
               return (
                 <li key={page}>
                   <button
                     onClick={() => changePage(page)}
-                    className={`px-4 py-2 rounded-md ${
+                    className={`cursor-pointer px-4 py-2 rounded-md ${
                       currentPage === page
                         ? "bg-black text-white"
                         : "bg-[#E0DACF] hover:opacity-60"

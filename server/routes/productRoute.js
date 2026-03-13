@@ -1,5 +1,5 @@
 import express from 'express'
-import { getAllProducts, getProductsForCategoryPage, getProductById, getProductsByTag, filteredProducts } from '../controllers/productController.js';
+import { getAllProducts, getProductsForCategoryPage, getProductById, getProductsByTag, searchProducts, getFilterOptions } from '../controllers/productController.js';
 import isAuthenticated from '../middlewares/authMiddleware.js';
 
 const productRouter = express.Router();
@@ -8,7 +8,9 @@ const productRouter = express.Router();
 
 productRouter.get("/", isAuthenticated, getAllProducts);
 
-productRouter.get("/filter", isAuthenticated, filteredProducts);
+productRouter.get("/search", isAuthenticated, searchProducts);
+
+productRouter.get("/search-filter", isAuthenticated, getFilterOptions);
 
 productRouter.get("/category/:category", isAuthenticated, getProductsForCategoryPage);
 

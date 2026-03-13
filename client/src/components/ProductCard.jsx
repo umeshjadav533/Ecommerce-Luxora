@@ -5,7 +5,7 @@ import Rating from "./Rating.jsx";
 
 export default function ProductCard({ product }) {
   return (
-    <div className="h-120 bg-white rounded-2xl flex flex-col justify-between items-center p-2 overflow-hidden">
+    <div className="h-120 bg-white flex flex-col justify-between items-center p-2 overflow-hidden">
       <div className="w-full h-100 overflow-hidden relative">
         <Link to={`/product/${product._id}`}>
           <img

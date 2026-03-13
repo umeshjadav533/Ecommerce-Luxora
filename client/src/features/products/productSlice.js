@@ -5,7 +5,8 @@ import {
   categoryPageProductAsyncThunk,
   getTagProductAsyncThunk,
   getRelatedProductsAsyncThunk,
-  getFilteredProductAsyncThunk,
+  getSearchProductAsyncThunk,
+  getSearchProductsFilterAsyncThunk,
 } from "./productAPI.js";
 
 const initialState = {
@@ -24,7 +25,7 @@ const initialState = {
     loading: false,
   },
 
-  filteredProductsData: {
+  searchProductsData: {
     products: [],
     meta: {
       totalDocs: 0,
@@ -37,6 +38,14 @@ const initialState = {
       nextPage: null,
     },
     loading: false,
+  },
+
+  searchProductsFilter: {
+    brands: [],
+    categories: [],
+    subCategories: [],
+    tags: [],
+    loading: false
   },
 
   productData: {
@@ -100,20 +109,41 @@ const productSlice = createSlice({
       })
 
       // ================= FILTERED PRODUCTS =================
-      .addCase(getFilteredProductAsyncThunk.pending, (state) => {
-        state.filteredProductsData.loading = true;
+      .addCase(getSearchProductAsyncThunk.pending, (state) => {
+        state.searchProductsData.loading = true;
       })
-      .addCase(getFilteredProductAsyncThunk.fulfilled, (state, action) => {
-        state.filteredProductsData.loading = false;
-        state.filteredProductsData.products = action.payload.products;
-        state.filteredProductsData.meta = action.payload.meta; 
+      .addCase(getSearchProductAsyncThunk.fulfilled, (state, action) => {
+        state.searchProductsData.loading = false;
+        state.searchProductsData.products = action.payload.products;
+        state.searchProductsData.meta = action.payload.meta; 
       })
-      .addCase(getFilteredProductAsyncThunk.rejected, (state, action) => {
-        state.filteredProductsData.loading = false;
-        state.filteredProductsData.products = [];
+      .addCase(getSearchProductAsyncThunk.rejected, (state, action) => {
+        state.searchProductsData.loading = false;
+        state.searchProductsData.products = [];
         state.error = action.error.message;
       })
 
+      // ================= SEARCH FILTER OPTIONS =================
+      .addCase(getSearchProductsFilterAsyncThunk.pending, (state) => {
+        state.searchProductsFilter.loading = true;
+      })
+      .addCase(getSearchProductsFilterAsyncThunk.fulfilled, (state, action) => {
+        state.searchProductsFilter.loading = false;
+        state.searchProductsFilter.brands = action.payload.brands;
+        state.searchProductsFilter.tags = action.payload.tags;
+        state.searchProductsFilter.categories = action.payload.categories;
+        state.searchProductsFilter.subCategories = action.payload.subCategories;
+      })
+      .addCase(getSearchProductsFilterAsyncThunk.rejected, (state, action) => {
+        state.searchProductsFilter.loading = false;
+        state.searchProductsFilter.brands = [];
+        state.searchProductsFilter.tags = [];
+        state.searchProductsFilter.categories = [];
+        state.searchProductsFilter.subCategories = [];
+        state.error = action.error.message;
+      })
+
+      
       // ================= SINGLE PRODUCT =================
       .addCase(getSingleProductAsyncThunk.pending, (state) => {
         state.productData.loading = true;
