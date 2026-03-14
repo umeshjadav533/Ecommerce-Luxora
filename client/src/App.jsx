@@ -18,7 +18,7 @@ import { userProfileAsyncThunk } from "./features/auth/authAPI";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import SearchPage from "./pages/SearchPage";
 import Cart from "./components/Cart";
-import ProfilePage from "./pages/ProfilePage";
+import AccountPage from "./pages/AccountPage";
 import ProductPage from "./pages/ProductPage";
 
 const App = () => {
@@ -79,7 +79,7 @@ const App = () => {
           <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/account" element={<AccountPage />} />
           <Route path="/product/:id" element={<ProductPage />} />
         </Route>
       </Routes>

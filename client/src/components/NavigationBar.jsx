@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { kidsPageMenu, menPageMenu, womenPageMenu } from "../assets/assets";
-import { Heart, Search, ShoppingBag, SunMedium, User } from "lucide-react";
+import { Handbag, Heart, Search, SunMedium, User } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleCart } from "../features/cart/cartSlice.js";
 
@@ -185,7 +185,7 @@ export default function NavigationBar() {
           <SunMedium size={20} />
         </li>
         <li>
-          <Link to="/profile">
+          <Link to="/account">
             <User size={20} />
           </Link>
         </li>
@@ -200,7 +200,7 @@ export default function NavigationBar() {
             className="cursor-pointer relative"
           >
             <span>
-              <ShoppingBag size={20} />
+              <Handbag  size={20} />
             </span>
             <span className="absolute -bottom-2 bg-black text-white rounded-full px-1 text-xs outfit-font">
               {cartProducts.length}
