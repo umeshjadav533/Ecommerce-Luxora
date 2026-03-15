@@ -7,12 +7,12 @@ import {
 } from "../features/cart/cartAPI.js";
 import { X } from "lucide-react";
 import CartProductCard from "./CartProductCard.jsx";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Cart = () => {
   const dispatch = useDispatch();
   const isCartOpen = useSelector((state) => state.cart.isCartOpen);
-
+  const navigate = useNavigate();
   // Only select cart state if cart is open
   const cartProducts = useSelector((state) => state.cart.cartProducts);
   const cartSummary = useSelector((state) => state.cart.cartSummary);
@@ -68,7 +68,8 @@ const Cart = () => {
                 Looks like you haven't added anything to your cart yet.
               </p>
 
-              <Link to="/"
+              <Link
+                to="/"
                 onClick={() => dispatch(closeCart())}
                 className="mt-6 px-6 py-2 bg-black text-white rounded-full text-sm hover:opacity-90 transition"
               >
@@ -77,7 +78,7 @@ const Cart = () => {
             </div>
           ) : (
             cartProducts.map((product, index) => (
-              <CartProductCard product={product} key={index}  />
+              <CartProductCard product={product} key={index} />
             ))
           )}
         </div>
@@ -114,7 +115,7 @@ const Cart = () => {
             </span>
           </div>
 
-          <button className="w-full bg-black text-white py-2 rounded-full text-lg font-semibold tracking-wide hover:opacity-90 transition">
+          <button className="w-full bg-black text-white py-2 rounded-full text-lg font-semibold tracking-wide hover:opacity-90 transition" onClick={()=>navigate("/checkout")}>
             CHECKOUT
           </button>
         </div>

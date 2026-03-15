@@ -39,17 +39,17 @@ export const userProfileAsyncThunk = createApiThunk(
 export const sendOtpAsyncThunk = createApiThunk(
     "auth/send-otp",
     "post",
-    "/send-otp"
+    "/auth/send-otp"
 );
 
 export const verifyOtpAsyncThunk = createApiThunk(
     "auth/verify-otp",
     "post",
-    "/verify-otp"
+    "/auth/verify-otp"
 );
 
 export const updateUserAsyncThunk = createApiThunk(
     "auth/update-user",
     "put",
-    "/update-user"
+    "/auth/update-user"
 );

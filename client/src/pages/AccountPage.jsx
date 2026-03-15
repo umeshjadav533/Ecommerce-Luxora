@@ -6,13 +6,16 @@ import {
   User,
   WalletCards,
 } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logoutUserAsyncThunk } from "../features/auth/authAPI.js";
 import { useState } from "react";
+import UserProfile from "../components/account/UserProfile.jsx";
+import UserOrder from "../components/account/UserOrder.jsx";
 
 export default function AccountPage() {
   const dispatch = useDispatch();
   const [tab, setTabs] = useState("profile");
+  const userData = useSelector((state) => state.auth.user);
   return (
     <div className="p-3 grid grid-cols-12 gap-3 mt-20 min-h-screen">
       {/* Left SideBar */}
@@ -25,7 +28,9 @@ export default function AccountPage() {
 
           <div className="flex flex-col">
             <span className="text-sm text-gray-500">Hello</span>
-            <span className="font-semibold">Jadav Umesh</span>
+            <span className="font-semibold">
+              {userData.first_name} {userData.last_name}
+            </span>
           </div>
         </div>
 
@@ -84,9 +89,8 @@ export default function AccountPage() {
       </div>
 
       <div className="col-span-9 bg-white rounded-lg overflow-hidden">
-        {tab === "profile" && <div className="border">
-          
-        </div>}
+        {tab === "profile" && <UserProfile />}
+        {tab === "orders" && <UserOrder />}
       </div>
     </div>
   );

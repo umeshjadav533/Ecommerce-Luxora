@@ -87,6 +87,13 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
+    address: [
+      {
+        type: String,
+        trim: true,
+        lowercase: true
+      }
+    ],
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     isVerified: {
