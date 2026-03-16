@@ -21,46 +21,84 @@ export const getUserOrders = asyncHandler(async (req, res, next) => {
 
 // ----------------- PLACE ORDER -----------------
 export const placeOrder = asyncHandler(async (req, res, next) => {
-  // 1. Take User from middelware and check user is authenticated or not
+  // Take User from middelware and check user is authenticated or not
   const user = req.user;
   if (!user) return next(new ErrorHandler("User is not authenticated", 401));
 
-  // 2. destructure fields
   const { orderItems, shippingAddress, paymentMethod } = req.body;
-
-  // 3. orderItems not available then throw error
+  // orderItems not available then throw error
   if (!orderItems || orderItems.length === 0) {
     return next(new ErrorHandler("No Order items", 400));
   }
 
-  // 4. Backend price calculation (BEST PRACTICE)
+  // Backend price calculation (BEST PRACTICE)
   const itemsPrice = orderItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0,
   );
 
-  const taxPrice = itemsPrice * 0.05;
-  const shippingPrice = itemsPrice > 1000 ? 0 : 40;
-  const totalPrice = itemsPrice + taxPrice + shippingPrice;
+  const tax = itemsPrice * 0.18;
+  const shipping = itemsPrice > 100 ? 0 : 10;
+  const total = itemsPrice + tax + shipping;
 
-  // 5. create order 
   const order = await Order.create({
     user: user._id,
     orderItems,
     shippingAddress,
     paymentMethod,
     itemsPrice,
-    taxPrice,
-    shippingPrice,
-    totalPrice,
+    tax,
+    shipping,
+    total,
   });
 
-  // 6. send response
   res.status(201).json({
     success: true,
     order,
   });
 });
+
+// export const placeOrder = asyncHandler(async (req, res, next) => {
+//   // 1. Take User from middelware and check user is authenticated or not
+//   const user = req.user;
+//   if (!user) return next(new ErrorHandler("User is not authenticated", 401));
+
+//   // 2. destructure fields
+//   const { orderItems, shippingAddress, paymentMethod } = req.body;
+
+//   // 3. orderItems not available then throw error
+//   if (!orderItems || orderItems.length === 0) {
+//     return next(new ErrorHandler("No Order items", 400));
+//   }
+
+//   // 4. Backend price calculation (BEST PRACTICE)
+//   const itemsPrice = orderItems.reduce(
+//     (acc, item) => acc + item.price * item.quantity,
+//     0,
+//   );
+
+//   const taxPrice = itemsPrice * 0.05;
+//   const shippingPrice = itemsPrice > 1000 ? 0 : 40;
+//   const totalPrice = itemsPrice + taxPrice + shippingPrice;
+
+//   // 5. create order
+//   const order = await Order.create({
+//     user: user._id,
+//     orderItems,
+//     shippingAddress,
+//     paymentMethod,
+//     itemsPrice,
+//     taxPrice,
+//     shippingPrice,
+//     totalPrice,
+//   });
+
+//   // 6. send response
+//   res.status(201).json({
+//     success: true,
+//     order,
+//   });
+// });
 
 // ----------------- GET SINGLE ORDER -----------------
 export const getSingleOrder = asyncHandler(async (req, res, next) => {
@@ -83,7 +121,10 @@ export const getSingleOrder = asyncHandler(async (req, res, next) => {
   }
 
   // 5. send response
-  res.status(200).json({ order });
+  res.status(200).json({
+    success: true,
+    order,
+  });
 });
 
 // ----------------- CANCEL ORDER -----------------
@@ -106,7 +147,7 @@ export const cancelOrder = asyncHandler(async (req, res, next) => {
       new ErrorHandler("Order already delivered. Cannot cncel.", 400),
     );
 
-  // 4. if order already cancel then throw error 
+  // 4. if order already cancel then throw error
   if (order.isCancelled)
     return next(new ErrorHandler("Order already cancelled", 400));
 
